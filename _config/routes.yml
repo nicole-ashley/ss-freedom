@@ -1,0 +1,9 @@
+---
+Name: ssfreedomroutes
+After:
+  - '#rootroutes'
+  - '#coreroutes'
+---
+SilverStripe\Control\Director:
+  rules:
+    'api/ssfreedom//$Action': 'NikRolls\SsFreedom\ApiController'

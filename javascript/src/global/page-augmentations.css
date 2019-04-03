@@ -1,0 +1,8 @@
+[data-ss-freedom-object] [data-ss-freedom-field] {
+    outline: solid 2px rgba(0, 0, 0, 0.25);
+    cursor: text;
+}
+
+[data-ss-freedom-object] [data-ss-freedom-field]:hover {
+    outline-color: rgba(0, 0, 0, 0.5);
+}

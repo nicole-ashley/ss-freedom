@@ -1,0 +1,10 @@
+:host {
+    position: fixed;
+    left: 2em;
+    bottom: 2em;
+    width: 4em;
+    height: 4em;
+    border-radius: 50%;
+    background: black;
+}
+

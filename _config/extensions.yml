@@ -1,0 +1,9 @@
+---
+Name: ssfreedom-extensions
+---
+SilverStripe\CMS\Controllers\ContentController:
+  extensions:
+    - NikRolls\SsFreedom\ContentControllerExtension
+SilverStripe\ORM\DataObject:
+  extensions:
+    - NikRolls\SsFreedom\TemplateAugmentor
