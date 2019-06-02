@@ -5,54 +5,41 @@
  */
 
 
-import '@stencil/core';
-
-
+import { HTMLStencilElement, JSXBase } from '@stencil/core/internal';
 
 
 export namespace Components {
-
-  interface SsfreedomAdminWidget {
-    'first': string;
-    'last': string;
-  }
-  interface SsfreedomAdminWidgetAttributes extends StencilHTMLAttributes {
-    'first'?: string;
-    'last'?: string;
-  }
+  interface SsFreedomAdminWidget {}
 }
 
 declare global {
-  interface StencilElementInterfaces {
-    'SsfreedomAdminWidget': Components.SsfreedomAdminWidget;
-  }
-
-  interface StencilIntrinsicElements {
-    'ssfreedom-admin-widget': Components.SsfreedomAdminWidgetAttributes;
-  }
 
 
-  interface HTMLSsfreedomAdminWidgetElement extends Components.SsfreedomAdminWidget, HTMLStencilElement {}
-  var HTMLSsfreedomAdminWidgetElement: {
-    prototype: HTMLSsfreedomAdminWidgetElement;
-    new (): HTMLSsfreedomAdminWidgetElement;
+  interface HTMLSsFreedomAdminWidgetElement extends Components.SsFreedomAdminWidget, HTMLStencilElement {}
+  var HTMLSsFreedomAdminWidgetElement: {
+    prototype: HTMLSsFreedomAdminWidgetElement;
+    new (): HTMLSsFreedomAdminWidgetElement;
   };
-
   interface HTMLElementTagNameMap {
-    'ssfreedom-admin-widget': HTMLSsfreedomAdminWidgetElement
+    'ss-freedom-admin-widget': HTMLSsFreedomAdminWidgetElement;
   }
-
-  interface ElementTagNameMap {
-    'ssfreedom-admin-widget': HTMLSsfreedomAdminWidgetElement;
-  }
-
-
-  export namespace JSX {
-    export interface Element {}
-    export interface IntrinsicElements extends StencilIntrinsicElements {
-      [tagName: string]: any;
-    }
-  }
-  export interface HTMLAttributes extends StencilHTMLAttributes {}
-
 }
+
+declare namespace LocalJSX {
+  interface SsFreedomAdminWidget extends JSXBase.HTMLAttributes<HTMLSsFreedomAdminWidgetElement> {}
+
+  interface IntrinsicElements {
+    'ss-freedom-admin-widget': SsFreedomAdminWidget;
+  }
+}
+
+export { LocalJSX as JSX };
+
+
+declare module "@stencil/core" {
+  export namespace JSX {
+    interface IntrinsicElements extends LocalJSX.IntrinsicElements {}
+  }
+}
+
+

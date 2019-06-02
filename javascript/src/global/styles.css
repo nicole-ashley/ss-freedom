@@ -1,0 +1,35 @@
+[data-ss-freedom-object] {
+  outline: dashed 1px transparent;
+  transition: outline-color 300ms;
+}
+
+[data-ss-freedom-object]:hover {
+  outline-color: grey;
+}
+
+[data-ss-freedom-field]:hover,
+.ss-freedom-empty {
+  background-color: rgba(0, 0, 0, 0.025) !important;
+}
+
+.ss-freedom-empty:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-ss-freedom-object]:not(.ss-freedom-show-hidden-empty) [data-ss-freedom-hidden-when-empty].ss-freedom-empty,
+[data-ss-freedom-object].ss-freedom-show-hidden-empty [data-ss-freedom-object]:not(.ss-freedom-show-hidden-empty)
+[data-ss-freedom-hidden-when-empty].ss-freedom-empty {
+  display: none;
+}
+
+ss-freedom-object-options-button {
+  z-index: 100000;
+}
+
+.tox-tinymce-inline {
+  z-index: 110000;
+}
+
+ss-freedom-object-options-panel {
+  z-index: 120000;
+}

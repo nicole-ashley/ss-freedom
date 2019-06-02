@@ -1,0 +1,21 @@
+{
+  "name": "nikrolls/ss-freedom",
+  "description": "Front-end editing for SilverStripe!",
+  "type": "silverstripe-vendormodule",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Nik Rolls",
+      "email": "nik@rolls.cc"
+    }
+  ],
+  "require": {
+    "ext-json": "*",
+    "silverstripe/framework": "4.3.3"
+  },
+  "extra": {
+    "expose": [
+      "javascript/www/build"
+    ]
+  }
+}

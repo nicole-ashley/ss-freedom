@@ -4,13 +4,19 @@ namespace NikRolls\SsFreedom;
 
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataExtension;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBHTMLText;
+use SilverStripe\Security\Permission;
 
 class TemplateAugmentor extends DataExtension
 {
-    public function FreedomAttributes($for) {
-        if (!$this->owner->canEdit()) {
+    public function FreedomIsActive()
+    {
+        return Permission::check('NIKROLLS_SSFREEDOM_EDIT') && $this->owner->canEdit();
+    }
+
+    public function FreedomAttributes($for, $hiddenWhenEmpty = false)
+    {
+        if (!$this->FreedomIsActive()) {
             return '';
         }
 
@@ -21,24 +27,33 @@ class TemplateAugmentor extends DataExtension
                 'type' => 'object',
                 'data' => $this->dataForCurrentObject()
             ];
-        } else if ($this->hasDbField($for)) {
+        } elseif ($this->hasDbField($for)) {
             $attribute = [
                 'type' => 'field',
                 'data' => $this->dataForDbField($for)
             ];
         }
 
-        if ($attribute) {
-            $type = $attribute['type'];
-            $jsonData = json_encode($attribute['data']);
-            return $this->asHTML("data-ss-freedom-$type='$jsonData'");
+        if (!$attribute) {
+            return '';
         }
+
+        $jsonData = json_encode($attribute['data']);
+        $output = ["data-ss-freedom-{$attribute['type']}='$jsonData'"];
+
+        if ($hiddenWhenEmpty) {
+            $output[] = 'data-ss-freedom-hidden-when-empty';
+        }
+
+        return $this->asHTML(implode(' ', $output));
     }
 
-    private function dataForCurrentObject() {
+    private function dataForCurrentObject()
+    {
         $output = [
             'class' => get_class($this->owner),
             'id' => $this->owner->ID,
+            'hasOptions' => $this->owner->hasMethod('getOptionsFields')
         ];
 
         $relatedObjects = $this->findMultipleReferences();
@@ -49,7 +64,8 @@ class TemplateAugmentor extends DataExtension
         return $output;
     }
 
-    private function findMultipleReferences() {
+    private function findMultipleReferences()
+    {
         $list = ArrayList::create();
         $list->merge($this->findRelatedObjectsFor('has_many'));
         $list->merge($this->findRelatedObjectsFor('many_many'));
@@ -69,7 +85,8 @@ class TemplateAugmentor extends DataExtension
         return $output;
     }
 
-    private function findRelatedObjectsFor($type) {
+    private function findRelatedObjectsFor($type)
+    {
         $relationships = $this->owner->config()->get($type);
         $list = ArrayList::create();
         foreach ($relationships as $name => $class) {
@@ -80,7 +97,8 @@ class TemplateAugmentor extends DataExtension
         return $list;
     }
 
-    private function groupRelatedObjectsByClass($list) {
+    private function groupRelatedObjectsByClass($list)
+    {
         $output = [];
         foreach ($list as $item) {
             $itemClass = get_class($item);
@@ -91,15 +109,18 @@ class TemplateAugmentor extends DataExtension
         return $output;
     }
 
-    private function hasDbField($fieldName) {
+    private function hasDbField($fieldName)
+    {
         return isset($this->dbFields()[$fieldName]);
     }
 
-    private function dbFields() {
+    private function dbFields()
+    {
         return $this->owner->config()->get('db');
     }
 
-    private function dataForDbField($fieldName) {
+    private function dataForDbField($fieldName)
+    {
         $data = ['name' => $fieldName];
         $field = $this->dbFields()[$fieldName];
         preg_match('`(?P<type>[^(]+)(?:\((?P<args>[^)]+)\))?`', $field, $parts);
@@ -139,16 +160,19 @@ class TemplateAugmentor extends DataExtension
         return $data;
     }
 
-    private function hasMany($relationshipName) {
+    private function hasMany($relationshipName)
+    {
         return $this->owner->getRelationType($relationshipName) === 'has_many';
     }
 
-    private function hasManyMany($relationshipName) {
+    private function hasManyMany($relationshipName)
+    {
         $relationshipType = $this->owner->getRelationType($relationshipName);
         return $relationshipType === 'many_many' || $relationshipType === 'belongs_many_many';
     }
 
-    private function asHTML($text) {
+    private function asHTML($text)
+    {
         $object = DBHTMLText::create();
         $object->setValue($text);
         return $object;

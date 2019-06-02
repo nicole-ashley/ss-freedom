@@ -1,39 +1,30 @@
 {
   "name": "ss-freedom",
   "version": "0.0.1",
-  "description": "SilverStripe Freedom",
-  "module": "dist/esm/index.js",
+  "description": "Stencil Component Starter",
   "main": "dist/index.js",
-  "types": "dist/types/components.d.ts",
+  "module": "dist/index.mjs",
+  "es2015": "dist/esm/index.mjs",
+  "es2017": "dist/esm/index.mjs",
+  "types": "dist/types/index.d.ts",
   "collection": "dist/collection/collection-manifest.json",
+  "collection:main": "dist/collection/index.js",
+  "unpkg": "dist/ss-freedom/ss-freedom.js",
   "files": [
-    "dist/"
+    "dist/",
+    "loader/"
   ],
   "scripts": {
-    "build": "stencil build",
+    "build": "stencil build --docs",
     "start": "stencil build --dev --watch --serve",
-    "test": "jest",
-    "test.watch": "jest --watch"
+    "test": "stencil test --spec --e2e",
+    "test.watch": "stencil test --spec --e2e --watchAll"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@stencil/core": "^0.18.0",
-    "@types/jest": "^24.0.11",
-    "jest": "^24.6.0"
+    "@stencil/core": "1.0.0"
   },
-  "author": "Nik Rolls <nik@rolls.cc>",
-  "license": "UNLICENSED",
-  "jest": {
-    "transform": {
-      "^.+\\.(ts|tsx)$": "<rootDir>/node_modules/@stencil/core/testing/jest.preprocessor.js"
-    },
-    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(tsx?|jsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "json",
-      "jsx"
-    ]
+  "license": "MIT",
+  "dependencies": {
+    "@types/tinymce": "^4.5.22"
   }
 }

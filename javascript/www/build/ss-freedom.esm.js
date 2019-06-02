@@ -1,0 +1,1 @@
+import{a as e,b as s}from"./p-2aed5326.js";e().then(e=>s([["p-p6vchlpw",[[1,"ss-freedom-admin-widget"]]]],{resourcesUrl:e}));
