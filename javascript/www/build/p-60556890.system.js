@@ -1,1 +1,0 @@
-System.register(["./p-7e09ea04.system.js"],function(e,t){"use strict";var s,n;return{setters:[function(e){s=e.a;n=e.b}],execute:function(){s().then(function(e){return n([["p-cndx0zet.system",[[1,"ss-freedom-admin-widget"]]]],{resourcesUrl:e})})}}});

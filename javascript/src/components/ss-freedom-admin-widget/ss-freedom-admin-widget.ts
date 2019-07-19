@@ -1,5 +1,6 @@
 import {Component} from '@stencil/core';
 import {TinyMceWrangler} from '../../utils/tiny-mce-wrangler';
+import {ObjectOptionsWrangler} from '../../utils/object-options-wrangler';
 
 @Component({
   tag: 'ss-freedom-admin-widget',
@@ -8,6 +9,7 @@ import {TinyMceWrangler} from '../../utils/tiny-mce-wrangler';
 export class SsFreedomAdminWidget {
   componentWillLoad() {
     new TinyMceWrangler().observeDom();
+    new ObjectOptionsWrangler().observeDom();
   }
 
   render() {

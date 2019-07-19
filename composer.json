@@ -11,7 +11,7 @@
   ],
   "require": {
     "ext-json": "*",
-    "silverstripe/framework": "4.3.3"
+    "silverstripe/framework": "^4.4"
   },
   "extra": {
     "expose": [

@@ -1,1 +1,1 @@
-import{a as e,b as s}from"./p-2aed5326.js";e().then(e=>s([["p-p6vchlpw",[[1,"ss-freedom-admin-widget"]]]],{resourcesUrl:e}));
+import{p as e,b as o}from"./p-4054c6de.js";e().then(e=>o([["p-tbe7cbpf",[[1,"ss-freedom-object-options-panel",{objectClass:[1,"object-class"],objectId:[1,"object-id"],loading:[32],formHtml:[32]}]]],["p-dssz2tng",[[1,"ss-freedom-object-options-button",{objectClass:[1,"object-class"],objectId:[1,"object-id"]}]]],["p-kuipp92g",[[1,"ss-freedom-admin-widget"]]]],{resourcesUrl:e}));
