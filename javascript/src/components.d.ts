@@ -10,6 +10,14 @@ import { HTMLStencilElement, JSXBase } from '@stencil/core/internal';
 
 export namespace Components {
   interface SsFreedomAdminWidget {}
+  interface SsFreedomObjectOptionsButton {
+    'objectClass': string;
+    'objectId': string;
+  }
+  interface SsFreedomObjectOptionsPanel {
+    'objectClass': string;
+    'objectId': string;
+  }
 }
 
 declare global {
@@ -20,16 +28,40 @@ declare global {
     prototype: HTMLSsFreedomAdminWidgetElement;
     new (): HTMLSsFreedomAdminWidgetElement;
   };
+
+  interface HTMLSsFreedomObjectOptionsButtonElement extends Components.SsFreedomObjectOptionsButton, HTMLStencilElement {}
+  var HTMLSsFreedomObjectOptionsButtonElement: {
+    prototype: HTMLSsFreedomObjectOptionsButtonElement;
+    new (): HTMLSsFreedomObjectOptionsButtonElement;
+  };
+
+  interface HTMLSsFreedomObjectOptionsPanelElement extends Components.SsFreedomObjectOptionsPanel, HTMLStencilElement {}
+  var HTMLSsFreedomObjectOptionsPanelElement: {
+    prototype: HTMLSsFreedomObjectOptionsPanelElement;
+    new (): HTMLSsFreedomObjectOptionsPanelElement;
+  };
   interface HTMLElementTagNameMap {
     'ss-freedom-admin-widget': HTMLSsFreedomAdminWidgetElement;
+    'ss-freedom-object-options-button': HTMLSsFreedomObjectOptionsButtonElement;
+    'ss-freedom-object-options-panel': HTMLSsFreedomObjectOptionsPanelElement;
   }
 }
 
 declare namespace LocalJSX {
   interface SsFreedomAdminWidget extends JSXBase.HTMLAttributes<HTMLSsFreedomAdminWidgetElement> {}
+  interface SsFreedomObjectOptionsButton extends JSXBase.HTMLAttributes<HTMLSsFreedomObjectOptionsButtonElement> {
+    'objectClass': string;
+    'objectId': string;
+  }
+  interface SsFreedomObjectOptionsPanel extends JSXBase.HTMLAttributes<HTMLSsFreedomObjectOptionsPanelElement> {
+    'objectClass': string;
+    'objectId': string;
+  }
 
   interface IntrinsicElements {
     'ss-freedom-admin-widget': SsFreedomAdminWidget;
+    'ss-freedom-object-options-button': SsFreedomObjectOptionsButton;
+    'ss-freedom-object-options-panel': SsFreedomObjectOptionsPanel;
   }
 }
 

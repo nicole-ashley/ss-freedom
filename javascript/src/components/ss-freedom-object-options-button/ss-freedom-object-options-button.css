@@ -1,0 +1,15 @@
+button {
+  -webkit-appearance: none;
+  border: 0;
+  outline: solid 1px grey;
+  background-color: white;
+  color: black;
+  padding: 0.5rem;
+  font-size: 1.25rem;
+
+  transition: background-color 300ms;
+}
+
+button:hover {
+  background-color: lightgrey;
+}
