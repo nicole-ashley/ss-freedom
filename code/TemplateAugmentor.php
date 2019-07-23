@@ -2,11 +2,17 @@
 
 namespace NikRolls\SsFreedom;
 
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataExtension;
+use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBHTMLText;
 use SilverStripe\Security\Permission;
 
+/**
+ * @property DataObject owner
+ */
 class TemplateAugmentor extends DataExtension
 {
     public function FreedomIsActive()
@@ -32,6 +38,11 @@ class TemplateAugmentor extends DataExtension
                 'type' => 'field',
                 'data' => $this->dataForDbField($for)
             ];
+        } elseif ($this->hasRelation($for)) {
+            $attribute = [
+                'type' => 'relationship',
+                'data' => $this->dataForRelation($for)
+            ];
         }
 
         if (!$attribute) {
@@ -53,7 +64,8 @@ class TemplateAugmentor extends DataExtension
         $output = [
             'class' => get_class($this->owner),
             'id' => $this->owner->ID,
-            'hasOptions' => $this->owner->hasMethod('getOptionsFields')
+            'hasOptions' =>
+                ClassInfo::classImplements($this->owner->getClassName(), 'NikRolls\SsFreedom\ObjectOptionsFields')
         ];
 
         $relatedObjects = $this->findMultipleReferences();
@@ -160,15 +172,42 @@ class TemplateAugmentor extends DataExtension
         return $data;
     }
 
-    private function hasMany($relationshipName)
+    private function hasRelation($relationName)
     {
-        return $this->owner->getRelationType($relationshipName) === 'has_many';
+        return (boolean)$this->owner->getRelationType($relationName);
     }
 
-    private function hasManyMany($relationshipName)
+    private function dataForRelation($relationName)
     {
-        $relationshipType = $this->owner->getRelationType($relationshipName);
-        return $relationshipType === 'many_many' || $relationshipType === 'belongs_many_many';
+        $data = [
+            'name' => $relationName,
+            'type' => $this->owner->getRelationType($relationName)
+        ];
+
+        if ($data['type'] === 'has_many') {
+            $schema = $this->owner->getSchema();
+            $hasManyComponent = $schema->hasManyComponent($this->owner->getClassName(), $relationName, true);
+            $data['sort'] = Config::inst()->get($hasManyComponent, 'default_sort');
+        } elseif ($data['type'] === 'many_many') {
+            $schema = $this->owner->getSchema();
+            $manyManyComponent = $schema->manyManyComponent($this->owner->getClassName(), $relationName);
+            $data['sort'] = Config::inst()->get($manyManyComponent['join'], 'default_sort');
+            $data['sort'] = preg_replace('`^"' . $manyManyComponent['join'] . '"\.`i', '', $data['sort']);
+        }
+
+        if (isset($data['sort'])) {
+            preg_match(
+                '`"?(?<field>[^"]+)"?(?:\s+(?<direction>ASC|DESC))?`i',
+                $data['sort'], $sortParts
+            );
+            $sortParts['direction'] = isset($sortParts['direction']) ? $sortParts['direction'] : 'ASC';
+            $data['sort'] = [
+                'field' => $sortParts['field'],
+                'direction' => strtolower($sortParts['direction']) === 'DESC' ? 'descending' : 'ascending'
+            ];
+        }
+
+        return $data;
     }
 
     private function asHTML($text)
