@@ -36,7 +36,7 @@ class ApiController extends Controller implements PermissionProvider
         $object = $this->getObjectById($vars->class, $vars->id);
 
         /** @var FieldList $fields */
-        $fields = $object->getOptionsFields();
+        $fields = $object->getObjectOptionsFields();
         foreach ($fields as $field) {
             $field->setValue($object->getField($field->getName()));
         }
@@ -110,7 +110,7 @@ class ApiController extends Controller implements PermissionProvider
 
     private function ensureClassHasOptionsFields(object $body)
     {
-        if (!ClassInfo::classImplements($body->class, 'NikRolls\SsFreedom\OptionsFields')) {
+        if (!ClassInfo::classImplements($body->class, 'NikRolls\SsFreedom\ObjectOptionsFields')) {
             $this->httpError(422, "Data object does not have options fields: $body->class");
         }
     }
