@@ -203,7 +203,7 @@ class TemplateAugmentor extends DataExtension
             $sortParts['direction'] = isset($sortParts['direction']) ? $sortParts['direction'] : 'ASC';
             $data['sort'] = [
                 'field' => $sortParts['field'],
-                'direction' => strtolower($sortParts['direction']) === 'DESC' ? 'descending' : 'ascending'
+                'direction' => strtolower($sortParts['direction']) === 'desc' ? 'descending' : 'ascending'
             ];
         }
 
