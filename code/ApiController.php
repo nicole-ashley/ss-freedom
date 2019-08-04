@@ -37,11 +37,9 @@ class ApiController extends Controller implements PermissionProvider
 
         /** @var FieldList $fields */
         $fields = $object->getObjectOptionsFields();
-        foreach ($fields as $field) {
-            $field->setValue($object->getField($field->getName()));
-        }
 
         $form = Form::create(null, null, $fields);
+        $form->loadDataFrom($object);
         $form->setFormMethod('POST');
         return $form->forAjaxTemplate();
     }
@@ -63,7 +61,7 @@ class ApiController extends Controller implements PermissionProvider
 
         $this->updateObjectWithData($object, $body->data);
 
-        return $this->renderObject($object);
+        return $this->renderObject($this->getObjectById($object->ClassName, $object->ID));
     }
 
     private function ensureStagedMode()
@@ -110,7 +108,7 @@ class ApiController extends Controller implements PermissionProvider
 
     private function ensureClassHasOptionsFields(object $body)
     {
-        if (!ClassInfo::classImplements($body->class, 'NikRolls\SsFreedom\ObjectOptionsFields')) {
+        if (!(singleton($body->class) instanceof ObjectOptionsFields)) {
             $this->httpError(422, "Data object does not have options fields: $body->class");
         }
     }

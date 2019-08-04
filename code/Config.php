@@ -14,17 +14,14 @@ class Config
             'inline' => true
         ],
         'text' => [
-            'plugins' => ['tinymcespellchecker'],
-            'toolbar' => 'undo redo',
+            'plugins' => ['charmap', 'tinymcespellchecker'],
+            'toolbar' => 'undo redo | charmap',
             'valid_elements' => '',
             'valid_styles' => []
         ],
         'html' => [
-            'plugins' => [
-                'lists',
-                'tinymcespellchecker'
-            ],
-            'toolbar' => 'undo redo | styleselect | bold italic | numlist bullist classselectionoptions',
+            'plugins' => ['charmap', 'lists', 'tinymcespellchecker'],
+            'toolbar' => 'undo redo | styleselect | bold italic | numlist bullist charmap | classselectionoptions',
             'valid_elements' => 'p,br,strong/b,em/i,ul,ol,li,a',
             'valid_styles' => []
         ]
