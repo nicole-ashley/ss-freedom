@@ -4,6 +4,7 @@ namespace NikRolls\SsFreedom;
 
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Convert;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\DataObject;
@@ -49,8 +50,8 @@ class TemplateAugmentor extends DataExtension
             return '';
         }
 
-        $jsonData = json_encode($attribute['data']);
-        $output = ["data-ss-freedom-{$attribute['type']}='$jsonData'"];
+        $jsonData = Convert::raw2att(json_encode($attribute['data']));
+        $output = ["data-ss-freedom-{$attribute['type']}=\"$jsonData\""];
 
         if ($hiddenWhenEmpty) {
             $output[] = 'data-ss-freedom-hidden-when-empty';
@@ -64,8 +65,7 @@ class TemplateAugmentor extends DataExtension
         $output = [
             'class' => get_class($this->owner),
             'id' => $this->owner->ID,
-            'hasOptions' =>
-                ClassInfo::classImplements($this->owner->getClassName(), 'NikRolls\SsFreedom\ObjectOptionsFields')
+            'hasOptions' => $this->owner instanceof ObjectOptionsFields
         ];
 
         $relatedObjects = $this->findMultipleReferences();

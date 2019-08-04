@@ -96,6 +96,18 @@ export class TinyMceWrangler {
       setups.push((editor: tinymce.Editor) => this.createTinyMceOptionsMenu(editor, classSelectionOptions));
     }
 
+    if (element instanceof HTMLButtonElement) {
+      setups.push((editor: tinymce.Editor) => {
+        element.addEventListener('click', e => e.preventDefault());
+        element.addEventListener('keydown', (e: KeyboardEvent) => {
+          if (e.code === 'Space') {
+            e.preventDefault();
+            editor.insertContent(' ');
+          }
+        });
+      });
+    }
+
     return (await this.tinyMce).init(config);
   }
 

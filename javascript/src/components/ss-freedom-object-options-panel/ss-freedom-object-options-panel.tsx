@@ -35,7 +35,7 @@ export class SsFreedomObjectOptionsPanel {
       } else if (field instanceof HTMLSelectElement) {
         data[field.name] = field.options[field.selectedIndex].value;
       } else if (field instanceof HTMLTextAreaElement) {
-        data[field.name] = field.innerHTML;
+        data[field.name] = field.value;
       }
       return data;
     }, {});

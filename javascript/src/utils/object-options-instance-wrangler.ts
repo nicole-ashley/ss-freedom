@@ -49,8 +49,9 @@ export class ObjectOptionsInstanceWrangler {
   private handleUpdate() {
     const hoveredPopup = document.querySelector([
       'ss-freedom-object-options-button:hover',
-      'ss-freedom-object-options-panel:hover'
-    ].join());
+      'ss-freedom-object-options-panel:hover',
+      '.tox:hover'
+    ].join(','));
     if (hoveredPopup) {
       this.popupHovered = true;
       hoveredPopup.addEventListener('mouseleave', this.popupLeaveHandler);
