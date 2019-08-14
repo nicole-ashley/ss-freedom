@@ -2,7 +2,7 @@
 
 namespace NikRolls\SsFreedom;
 
-use SilverStripe\Core\ClassInfo;
+use SilverStripe\Control\Controller;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Convert;
 use SilverStripe\ORM\ArrayList;
@@ -18,7 +18,10 @@ class TemplateAugmentor extends DataExtension
 {
     public function FreedomIsActive()
     {
-        return Permission::check('NIKROLLS_SSFREEDOM_EDIT') && $this->owner->canEdit();
+        $currentRequest = Controller::has_curr() ? Controller::curr()->getRequest() : null;
+        $isStaticPublishing = $currentRequest ?
+            stristr($currentRequest->getHeader('User-Agent'), 'staticpublish') : false;
+        return !$isStaticPublishing && Permission::check('NIKROLLS_SSFREEDOM_EDIT') && $this->owner->canEdit();
     }
 
     public function FreedomAttributes($for, $hiddenWhenEmpty = false)
