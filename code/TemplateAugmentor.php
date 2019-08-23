@@ -2,14 +2,12 @@
 
 namespace NikRolls\SsFreedom;
 
-use SilverStripe\Control\Controller;
-use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Config\Config as SS_Config;
 use SilverStripe\Core\Convert;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBHTMLText;
-use SilverStripe\Security\Permission;
 
 /**
  * @property DataObject owner
@@ -18,10 +16,7 @@ class TemplateAugmentor extends DataExtension
 {
     public function FreedomIsActive()
     {
-        $currentRequest = Controller::has_curr() ? Controller::curr()->getRequest() : null;
-        $isStaticPublishing = $currentRequest ?
-            stristr($currentRequest->getHeader('User-Agent'), 'staticpublish') : false;
-        return !$isStaticPublishing && Permission::check('NIKROLLS_SSFREEDOM_EDIT') && $this->owner->canEdit();
+        return Config::isActive($this->owner);
     }
 
     public function FreedomAttributes($for, $hiddenWhenEmpty = false)
@@ -190,11 +185,11 @@ class TemplateAugmentor extends DataExtension
         if ($data['type'] === 'has_many') {
             $schema = $this->owner->getSchema();
             $hasManyComponent = $schema->hasManyComponent($this->owner->getClassName(), $relationName, true);
-            $data['sort'] = Config::inst()->get($hasManyComponent, 'default_sort');
+            $data['sort'] = SS_Config::inst()->get($hasManyComponent, 'default_sort');
         } elseif ($data['type'] === 'many_many') {
             $schema = $this->owner->getSchema();
             $manyManyComponent = $schema->manyManyComponent($this->owner->getClassName(), $relationName);
-            $data['sort'] = Config::inst()->get($manyManyComponent['join'], 'default_sort');
+            $data['sort'] = SS_Config::inst()->get($manyManyComponent['join'], 'default_sort');
             $data['sort'] = preg_replace('`^"' . $manyManyComponent['join'] . '"\.`i', '', $data['sort']);
         }
 
