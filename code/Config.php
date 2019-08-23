@@ -2,7 +2,10 @@
 
 namespace NikRolls\SsFreedom;
 
+use SilverStripe\Control\Controller;
 use SilverStripe\Core\Config\Configurable;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Security\Permission;
 
 class Config
 {
@@ -31,5 +34,14 @@ class Config
     {
         $config = singleton(__CLASS__)->config();
         return json_encode($config->get('tinymce'));
+    }
+
+    public static function isActive(DataObject $object = null)
+    {
+        $currentRequest = Controller::has_curr() ? Controller::curr()->getRequest() : null;
+        $isStaticPublishing = $currentRequest ?
+            stristr($currentRequest->getHeader('User-Agent'), 'staticpublish') : false;
+        return !$isStaticPublishing && Permission::check('NIKROLLS_SSFREEDOM_EDIT') &&
+            $object && $object->canEdit();
     }
 }
