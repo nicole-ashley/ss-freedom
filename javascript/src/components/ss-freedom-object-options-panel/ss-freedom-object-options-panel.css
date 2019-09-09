@@ -3,15 +3,17 @@
   background-color: white;
   color: black;
   padding: 0.5rem;
+  line-height: 0;
 }
 
-ion-icon.loading {
+ion-icon {
   animation: 1s infinite linear spin;
   font-size: 1.25rem;
 }
 
 form {
   margin: 0;
+  line-height: 1;
 }
 
 fieldset {

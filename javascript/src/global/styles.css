@@ -17,8 +17,7 @@
 }
 
 [data-ss-freedom-object]:not(.ss-freedom-show-hidden-empty) [data-ss-freedom-hidden-when-empty].ss-freedom-empty,
-[data-ss-freedom-object].ss-freedom-show-hidden-empty [data-ss-freedom-object]:not(.ss-freedom-show-hidden-empty)
-[data-ss-freedom-hidden-when-empty].ss-freedom-empty {
+[data-ss-freedom-object].ss-freedom-show-hidden-empty [data-ss-freedom-object]:not(.ss-freedom-show-hidden-empty) [data-ss-freedom-hidden-when-empty].ss-freedom-empty {
   display: none;
 }
 
@@ -29,13 +28,13 @@ span[data-ss-freedom-field].ss-freedom-empty:not(.mce-edit-focus) {
 }
 
 ss-freedom-object-options-button {
-  z-index: 7;
+  z-index: 10000;
 }
 
 .tox {
-  z-index: 8;
+  z-index: 11000;
 }
 
 ss-freedom-object-options-panel {
-  z-index: 9;
+  z-index: 11100;
 }
