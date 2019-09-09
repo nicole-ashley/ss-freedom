@@ -90,10 +90,10 @@ export class TinyMceWrangler {
       }
     );
 
-    if (config.class_selection_options) {
-      const classSelectionOptions = config.class_selection_options;
-      delete config.class_selection_options;
-      setups.push((editor: tinymce.Editor) => this.createTinyMceOptionsMenu(editor, classSelectionOptions));
+    if (config.element_options) {
+      const elementOptions = config.element_options;
+      delete config.element_options;
+      setups.push((editor: tinymce.Editor) => this.createTinyMceOptionsMenu(editor, elementOptions));
     }
 
     if (element instanceof HTMLButtonElement) {
@@ -127,34 +127,53 @@ export class TinyMceWrangler {
     await this.updateCmsWithLatestData(e.target);
   }
 
-  private createTinyMceOptionsMenu(editor, classSelectionOptions) {
-    editor.ui.registry.addMenuButton('classselectionoptions', {
+  private createTinyMceOptionsMenu(editor, configurations) {
+    editor.ui.registry.addMenuButton('elementoptions', {
       text: 'Options',
       fetch: (callback) => {
-        const items = classSelectionOptions.reduce((menus, option) => {
+        const items = configurations.reduce((menus, configuration) => {
           const currentNode = editor.selection.getNode();
-          const closestMatch = currentNode.closest(option.selector);
+          const closestMatch = currentNode.closest(configuration.selector);
           const closestMatchIsWithinEditor = editor.getBody().contains(closestMatch);
           if (closestMatch && closestMatchIsWithinEditor) {
             menus.push({
               type: 'nestedmenuitem',
-              text: option.name,
+              text: configuration.name,
               getSubmenuItems: () => {
-                const classes = option.classes;
-                const keys = Object.keys(classes);
-                const values = Object.values(classes).filter(value => !!value);
-                const defaultItem = keys.find(name => classes[name] === null);
-                const selectedItem = keys.find(name => closestMatch.classList.contains(classes[name])) || defaultItem;
+                const options = configuration.options;
+                const keys = Object.keys(options);
+                const values = Object.values(options).filter(value => !!value);
+                const defaultItem = keys.find(name => options[name] === null);
+                const selectedItem = keys.find((name) => {
+                  const rule = options[name];
+                  return rule && Object.keys(rule).every((attr) => {
+                    const attrValue = closestMatch.getAttribute(attr);
+                    return attrValue && TinyMceWrangler.tokeniseAttribute(closestMatch, attr).indexOf(rule[attr]) >= 0;
+                  });
+                }) || defaultItem;
 
                 return keys.map((name) => ({
                   type: 'menuitem',
                   text: name,
                   icon: name === selectedItem ? 'checkmark' : undefined,
                   onAction: () => {
-                    closestMatch.classList.remove(...values);
-                    if (classes[name]) {
-                      closestMatch.classList.add(classes[name]);
-                    }
+                    values.forEach((inactiveRule) => {
+                      inactiveRule && Object.keys(inactiveRule).forEach((attr) => {
+                        const values = TinyMceWrangler.tokeniseAttribute(closestMatch, (attr));
+                        const currentRulePosition = values.indexOf(inactiveRule[attr]);
+                        if(currentRulePosition >= 0) {
+                          values.splice(currentRulePosition, 1);
+                          closestMatch.setAttribute(attr, values.join(' '));
+                        }
+                      });
+                    });
+
+                    const newRule = options[name];
+                    newRule && Object.keys(newRule).forEach((attr) => {
+                      const values = TinyMceWrangler.tokeniseAttribute(closestMatch, (attr));
+                      values.push(newRule[attr]);
+                      TinyMceWrangler.setTokenisedAttribute(closestMatch, attr, values);
+                    });
                   }
                 }));
               }
@@ -165,6 +184,16 @@ export class TinyMceWrangler {
         callback(items);
       }
     });
+  }
+
+  private static tokeniseAttribute(element: HTMLElement, name: string): string[] {
+    const currentValue = element.getAttribute(name) || '';
+    return currentValue.split(' ').filter(value => value);
+  }
+
+  private static setTokenisedAttribute(element: HTMLElement, name: string, values: string[]): HTMLElement {
+    element.setAttribute(name, values.join(' ').trim());
+    return element;
   }
 
   private static updateEmptyFlag(editor: tinymce.Editor) {

@@ -56,7 +56,7 @@ export class SsFreedomObjectOptionsPanel {
   private removeOptionsButtonForOldObject() {
     const criteria = [
       `ss-freedom-object-options-button[object-class="${this.objectClass.replace(/\\/g, '\\\\')}"]`,
-        `[object-id="${this.objectId}"]`
+      `[object-id="${this.objectId}"]`
     ];
     Array.from(document.querySelectorAll(criteria.join(''))).forEach(el => el.remove());
   }
@@ -67,7 +67,7 @@ export class SsFreedomObjectOptionsPanel {
 
   render() {
     if (this.loading) {
-      return <ion-icon className="loading" name="sync"></ion-icon>;
+      return <ion-icon name="sync"></ion-icon>;
     } else {
       return (
         <Host>

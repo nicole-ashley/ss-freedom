@@ -5,11 +5,15 @@ button {
   background-color: white;
   color: black;
   padding: 0.5rem;
-  font-size: 1.25rem;
+  line-height: 0;
 
   transition: background-color 300ms;
 }
 
 button:hover {
   background-color: lightgrey;
+}
+
+ion-icon {
+  font-size: 1.25rem;
 }
