@@ -6,6 +6,7 @@ use SilverStripe\Control\Controller;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Permission;
+use SilverStripe\Versioned\Versioned;
 
 class Config
 {
@@ -39,9 +40,14 @@ class Config
     public static function isActive(DataObject $object = null)
     {
         $currentRequest = Controller::has_curr() ? Controller::curr()->getRequest() : null;
+
         $isStaticPublishing = $currentRequest ?
             stristr($currentRequest->getHeader('User-Agent'), 'staticpublish') : false;
-        return !$isStaticPublishing && Permission::check('NIKROLLS_SSFREEDOM_EDIT') &&
+
+        $isInLiveMode = Versioned::get_stage() === 'Live';
+
+        return !$isStaticPublishing && !$isInLiveMode &&
+            Permission::check('NIKROLLS_SSFREEDOM_EDIT') &&
             $object && $object->canEdit();
     }
 }
