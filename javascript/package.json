@@ -25,6 +25,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@types/tinymce": "^4.5.22"
+    "@types/tinymce": "^4.5.22",
+    "he": "^1.2.0"
   }
 }

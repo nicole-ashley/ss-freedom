@@ -155,8 +155,9 @@ class TemplateAugmentor extends DataExtension
                 $data['type'] = 'time';
                 break;
             case 'Varchar':
+            case 'HTMLVarchar':
                 $data['type'] = 'text';
-                $data['maxLength'] = (int)$parts['args'];
+                $data['maxLength'] = (int)explode(',', $parts['args'])[0];
                 break;
             case 'Text':
                 $data['type'] = 'text';
@@ -164,7 +165,6 @@ class TemplateAugmentor extends DataExtension
             case 'HTMLText':
                 $data['type'] = 'html';
                 break;
-
         }
 
         return $data;
@@ -196,7 +196,8 @@ class TemplateAugmentor extends DataExtension
         if (isset($data['sort'])) {
             preg_match(
                 '`"?(?<field>[^"]+)"?(?:\s+(?<direction>ASC|DESC))?`i',
-                $data['sort'], $sortParts
+                $data['sort'],
+                $sortParts
             );
             $sortParts['direction'] = isset($sortParts['direction']) ? $sortParts['direction'] : 'ASC';
             $data['sort'] = [

@@ -2,6 +2,7 @@
 
 namespace NikRolls\SsFreedom;
 
+use SilverStripe\Admin\LeftAndMain;
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\ORM\DataObject;
@@ -15,18 +16,19 @@ class Config
     private static $tinymce = [
         'all' => [
             'menubar' => false,
-            'inline' => true
+            'inline' => true,
+            'noneditable_noneditable_class' => 'noneditable'
         ],
         'text' => [
-            'plugins' => ['charmap'],
+            'plugins' => ['charmap', 'noneditable'],
             'toolbar' => 'undo redo | charmap',
-            'valid_elements' => '',
+            'valid_elements' => 'ss-freedom-shortcode[class|tag|title]',
             'valid_styles' => []
         ],
         'html' => [
-            'plugins' => ['charmap', 'lists'],
+            'plugins' => ['charmap', 'lists', 'noneditable'],
             'toolbar' => 'undo redo | styleselect | bold italic | numlist bullist charmap | elementoptions',
-            'valid_elements' => 'p,br,strong/b,em/i,ul,ol,li,a',
+            'valid_elements' => 'p,br,strong/b,em/i,ul,ol,li,a[href],ss-freedom-shortcode[class|tag|title]',
             'valid_styles' => []
         ]
     ];
@@ -46,8 +48,10 @@ class Config
 
         $isInLiveMode = Versioned::get_stage() === 'Live';
 
-        return !$isStaticPublishing && !$isInLiveMode &&
+        $isInCms = Controller::curr() instanceof LeftAndMain;
+
+        return !$isStaticPublishing && !$isInLiveMode && !$isInCms &&
             Permission::check('NIKROLLS_SSFREEDOM_EDIT') &&
-            $object && $object->canEdit();
+            (!$object || $object->canEdit());
     }
 }

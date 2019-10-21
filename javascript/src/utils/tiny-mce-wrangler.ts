@@ -1,4 +1,5 @@
 import * as tinymce from 'tinymce';
+import he from 'he';
 import {ApiService} from './api-service';
 import {ElementMetadata} from './element-metadata';
 
@@ -107,6 +108,15 @@ export class TinyMceWrangler {
         });
       });
     }
+
+    setups.push((editor: tinymce.Editor) => {
+      editor.on('PostProcess', function(e) {
+        e.content = e.content.replace(
+          /<ss-freedom-shortcode[^>]*?tag="([^"]*?)"[^>]*?>.*?<\/ss-freedom-shortcode>/g,
+          (_, capture) => he.decode(capture)
+        );
+      });
+    });
 
     return (await this.tinyMce).init(config);
   }

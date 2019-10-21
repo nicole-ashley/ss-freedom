@@ -5,6 +5,7 @@ namespace NikRolls\SsFreedom;
 use SilverStripe\CMS\Controllers\ContentController;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Extension;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\View\Requirements;
 
 /**
