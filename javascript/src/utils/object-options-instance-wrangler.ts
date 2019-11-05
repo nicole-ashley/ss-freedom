@@ -1,5 +1,3 @@
-import {ElementMetadata} from "./element-metadata";
-
 export class ObjectOptionsInstanceWrangler {
   private element: HTMLElement;
   private optionsButton: HTMLElement;
@@ -73,15 +71,11 @@ export class ObjectOptionsInstanceWrangler {
   }
 
   private activateHoverState() {
-    const elementBounds = this.element.getBoundingClientRect();
     this.element.addEventListener('mouseleave', this.elementLeaveHandler);
     this.element.classList.add('ss-freedom-show-hidden-empty');
 
     const widget = document.createElement('ss-freedom-object-options-button');
-    this.configureObjectMetadata(widget);
-    widget.style.position = 'absolute';
-    widget.style.top = elementBounds.top + window.scrollY + 'px';
-    widget.style.right = (document.body.clientWidth - elementBounds.right) + window.scrollX + 'px';
+    widget['element'] = this.element;
 
     document.body.appendChild(widget);
     this.optionsButton = widget;
@@ -97,11 +91,5 @@ export class ObjectOptionsInstanceWrangler {
       this.optionsButton.remove();
       delete this.optionsButton;
     }
-  }
-
-  private configureObjectMetadata(widget) {
-    const data = ElementMetadata.getObjectDataForFieldElement(this.element);
-    widget.setAttribute('object-class', data.class);
-    widget.setAttribute('object-id', data.id);
   }
 }

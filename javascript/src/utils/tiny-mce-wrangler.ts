@@ -87,6 +87,14 @@ export class TinyMceWrangler {
         init_instance_callback: (editor: tinymce.Editor) => {
           editor.on('Change', e => this.onChange(e));
           TinyMceWrangler.updateEmptyFlag(editor);
+        },
+        link_list: callback => this.apiService.getLinkList().then(callback),
+        urlconverter_callback: (url) => {
+          if (url.startsWith('[sitetree_link%20id=')) {
+            return decodeURI(url);
+          } else {
+            return url;
+          }
         }
       }
     );
@@ -110,7 +118,7 @@ export class TinyMceWrangler {
     }
 
     setups.push((editor: tinymce.Editor) => {
-      editor.on('PostProcess', function(e) {
+      editor.on('PostProcess', function (e) {
         e.content = e.content.replace(
           /<ss-freedom-shortcode[^>]*?tag="([^"]*?)"[^>]*?>.*?<\/ss-freedom-shortcode>/g,
           (_, capture) => he.decode(capture)
@@ -171,7 +179,7 @@ export class TinyMceWrangler {
                       inactiveRule && Object.keys(inactiveRule).forEach((attr) => {
                         const values = TinyMceWrangler.tokeniseAttribute(closestMatch, (attr));
                         const currentRulePosition = values.indexOf(inactiveRule[attr]);
-                        if(currentRulePosition >= 0) {
+                        if (currentRulePosition >= 0) {
                           values.splice(currentRulePosition, 1);
                           closestMatch.setAttribute(attr, values.join(' '));
                         }

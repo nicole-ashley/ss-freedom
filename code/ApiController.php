@@ -6,6 +6,7 @@ use SilverStripe\CMS\Controllers\ModelAsController;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Convert;
 use SilverStripe\Forms\FieldList;
@@ -16,11 +17,12 @@ use SilverStripe\Security\PermissionProvider;
 class ApiController extends Controller implements PermissionProvider
 {
     private static $allowed_actions = [
-        'get_options_form',
-        'update_object'
+        'getOptionsForm' => 'NIKROLLS_SSFREEDOM_EDIT',
+        'updateObject' => 'NIKROLLS_SSFREEDOM_EDIT',
+        'getLinkList' => 'NIKROLLS_SSFREEDOM_EDIT'
     ];
 
-    public function get_options_form(HTTPRequest $request)
+    public function getOptionsForm(HTTPRequest $request)
     {
         $this->ensureStagedMode();
         $this->ensureHttpMethod('GET');
@@ -44,7 +46,7 @@ class ApiController extends Controller implements PermissionProvider
         return $form->forAjaxTemplate();
     }
 
-    public function update_object(HTTPRequest $request)
+    public function updateObject(HTTPRequest $request)
     {
         $this->ensureStagedMode();
         $this->ensureHttpMethod('PATCH');
@@ -62,6 +64,19 @@ class ApiController extends Controller implements PermissionProvider
         $this->updateObjectWithData($object, $body->data);
 
         return $this->renderObject($this->getObjectById($object->ClassName, $object->ID));
+    }
+
+    public function getLinkList(HTTPRequest $request)
+    {
+        $this->ensureStagedMode();
+        $this->ensureHttpMethod('GET');
+
+        $linkList = $this->generateLinkList();
+
+        $response = HTTPResponse::create();
+        $response->addHeader('Content-Type', 'application/json');
+        $response->setBody(json_encode($linkList));
+        return $response;
     }
 
     private function ensureStagedMode()
@@ -143,13 +158,54 @@ class ApiController extends Controller implements PermissionProvider
     {
         if ($object->hasMethod('forTemplate')) {
             return $object->forTemplate();
-        } else if ($object instanceof SiteTree) {
+        } elseif ($object instanceof SiteTree) {
             return ModelAsController::controller_for($object);
         } else {
             $response = $this->getResponse();
             $response->addHeader('Content-Type', 'application/json');
             $response->setBody(Convert::array2json($object->toMap()));
             return $response;
+        }
+    }
+
+    private function generateLinkList(SiteTree $parent = null, $parentIsLast = false)
+    {
+        $output = [];
+        $depth = $parent ? $this->getPageDepth($parent) + 1 : 0;
+        $pages = SiteTree::get()->filter(['ParentID' => $parent ? $parent->ID : 0]);
+        $pageCount = $pages->count();
+
+        foreach ($pages as $i => $page) {
+            /** @var SiteTree $page */
+            $isLast = $i + 1 >= $pageCount;
+
+            if ($depth > 0 && !$parentIsLast) {
+                $treePrefix = str_repeat('┃　', $depth - 1);
+            } elseif ($depth > 0 && $parentIsLast) {
+                $treePrefix = str_repeat('　　', $depth - 1);
+            } else {
+                $treePrefix = '';
+            }
+            if ($depth > 0) {
+                $treePrefix .= $isLast ? '┗ ' : '┣　';
+            }
+            $output[] = ['title' => $treePrefix . $page->MenuTitle, 'value' => "[sitetree_link id={$page->ID}]"];
+
+            if ($page->Children()->count()) {
+                $output = array_merge($output, $this->generateLinkList($page, $isLast));
+            }
+        }
+
+        return $output;
+    }
+
+    private function getPageDepth(SiteTree $page)
+    {
+        $parent = $page->Parent();
+        if ($parent && $parent->exists()) {
+            return $this->getPageDepth($parent) + 1;
+        } else {
+            return 0;
         }
     }
 

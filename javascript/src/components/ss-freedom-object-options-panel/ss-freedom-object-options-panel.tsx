@@ -1,28 +1,41 @@
 import {Component, Element, h, Host, Prop, State} from '@stencil/core';
 import {ApiService} from '../../utils/api-service';
+import {ElementMetadata} from '../../utils/element-metadata';
+import {ElementFollower} from '../../utils/element-follower';
 
 @Component({
   tag: 'ss-freedom-object-options-panel',
-  styleUrl: 'ss-freedom-object-options-panel.css',
+  styleUrl: 'ss-freedom-object-options-panel.scss',
   shadow: true
 })
 export class SsFreedomObjectOptionsPanel {
-  @Prop() objectClass!: string;
-  @Prop() objectId!: string;
+  @Prop() element!: HTMLElement;
 
-  private api: ApiService;
-  private formWrapper: HTMLElement;
   @Element() private host: HTMLElement;
   @State() private loading = true;
   @State() private formHtml: string;
+  private elementFollower: ElementFollower;
+  private metadata: { class: string; id: number };
+  private api: ApiService;
+  private formWrapper: HTMLElement;
 
   constructor() {
     this.api = new ApiService();
     this.instantiateOptionsForm();
   }
 
+  componentDidLoad() {
+    this.elementFollower = new ElementFollower(this.element, this.host);
+    this.elementFollower.startFollowing();
+  }
+
+  componentDidUnload() {
+    this.elementFollower.stopFollowing();
+  }
+
   async instantiateOptionsForm() {
-    this.formHtml = await this.api.getOptionsForm(this.objectClass, this.objectId);
+    this.metadata = ElementMetadata.getObjectDataForFieldElement(this.element);
+    this.formHtml = await this.api.getOptionsForm(this.metadata.class, this.metadata.id);
     this.loading = false;
   }
 
@@ -39,15 +52,15 @@ export class SsFreedomObjectOptionsPanel {
       }
       return data;
     }, {});
-    const newHtml = await this.api.updateObject(this.objectClass, this.objectId, formData);
+    const newHtml = await this.api.updateObject(this.metadata.class, this.metadata.id, formData);
     this.updateObjectHtml(newHtml);
     this.close();
   }
 
   private updateObjectHtml(newHtml: string) {
     const criteria = [
-      `[data-ss-freedom-object*='"class":"${this.objectClass.replace(/\\/g, '\\\\\\\\')}"']`,
-      `[data-ss-freedom-object*='"id":${this.objectId}']`
+      `[data-ss-freedom-object*='"class":"${this.metadata.class.replace(/\\/g, '\\\\\\\\')}"']`,
+      `[data-ss-freedom-object*='"id":${this.metadata.id}']`
     ];
     Array.from(document.querySelectorAll(criteria.join(''))).forEach(el => el.outerHTML = newHtml);
     this.removeOptionsButtonForOldObject();
@@ -55,8 +68,8 @@ export class SsFreedomObjectOptionsPanel {
 
   private removeOptionsButtonForOldObject() {
     const criteria = [
-      `ss-freedom-object-options-button[object-class="${this.objectClass.replace(/\\/g, '\\\\')}"]`,
-      `[object-id="${this.objectId}"]`
+      `ss-freedom-object-options-button[object-class="${this.metadata.class.replace(/\\/g, '\\\\')}"]`,
+      `[object-id="${this.metadata.id}"]`
     ];
     Array.from(document.querySelectorAll(criteria.join(''))).forEach(el => el.remove());
   }
@@ -72,7 +85,7 @@ export class SsFreedomObjectOptionsPanel {
       return (
         <Host>
           <div ref={el => this.formWrapper = el} innerHTML={this.formHtml}></div>
-          <button onClick={() => this.saveChanges()}>Save</button>
+          <button type="submit" onClick={() => this.saveChanges()}>Save</button>
           <button onClick={() => this.close()}>Cancel</button>
         </Host>
       );

@@ -1,0 +1,38 @@
+@mixin standard-button {
+  @include button;
+  color: #222f3e;
+  background-color: #f0f0f0;
+
+  &:hover {
+    background-color: #e3e3e3;
+  }
+
+  &:active {
+    background-color: #d6d6d6;
+  }
+}
+
+@mixin primary-button {
+  @include button;
+  color: #fff;
+  background-color: #207ab7;
+
+  &:hover {
+    background-color: #1c6ca1;
+  }
+
+  &:active {
+    background-color: #185d8c;
+  }
+}
+
+@mixin button {
+  appearance: none;
+  border-radius: 3px;
+  border: none;
+  padding: 0.25rem 1rem;
+  font-size: 0.875rem;
+  font-weight: bold;
+  line-height: 1.5rem;
+  transition: background-color $hover-transition-duration;
+}

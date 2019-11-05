@@ -8,7 +8,7 @@ export class ApiService {
   }
 
   async getOptionsForm(className, id) {
-    const response = await this.fetch(this.apiUrlFor('get_options_form') + `?class=${className}&id=${id}`, {
+    const response = await this.fetch(this.apiUrlFor('getOptionsForm') + `?class=${className}&id=${id}`, {
       method: 'GET',
       credentials: 'include'
     });
@@ -16,12 +16,20 @@ export class ApiService {
   }
 
   async updateObject(className, id, data) {
-    const response = await this.fetch(this.apiUrlFor('update_object'), {
+    const response = await this.fetch(this.apiUrlFor('updateObject'), {
       method: 'PATCH',
       credentials: 'include',
       body: JSON.stringify({class: className, id, data})
     });
     return await response.text();
+  }
+
+  async getLinkList() {
+    const response = await this.fetch(this.apiUrlFor('getLinkList'), {
+      method: 'GET',
+      credentials: 'include'
+    });
+    return await response.json();
   }
 
   private apiUrlFor(endpoint) {

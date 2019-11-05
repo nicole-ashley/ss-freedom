@@ -28,13 +28,13 @@ span[data-ss-freedom-field].ss-freedom-empty:not(.mce-edit-focus) {
 }
 
 ss-freedom-object-options-button {
-  z-index: 10000;
+  z-index: 10;
 }
 
 .tox {
-  z-index: 11000;
+  z-index: 11;
 }
 
 ss-freedom-object-options-panel {
-  z-index: 11100;
+  z-index: 12;
 }

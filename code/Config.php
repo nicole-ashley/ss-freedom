@@ -26,8 +26,8 @@ class Config
             'valid_styles' => []
         ],
         'html' => [
-            'plugins' => ['charmap', 'lists', 'noneditable'],
-            'toolbar' => 'undo redo | styleselect | bold italic | numlist bullist charmap | elementoptions',
+            'plugins' => ['charmap', 'lists', 'noneditable', 'link'],
+            'toolbar' => 'undo redo | styleselect | bold italic | link unlink | numlist bullist charmap | elementoptions',
             'valid_elements' => 'p,br,strong/b,em/i,ul,ol,li,a[href],ss-freedom-shortcode[class|tag|title]',
             'valid_styles' => []
         ]
@@ -46,7 +46,11 @@ class Config
         $isStaticPublishing = $currentRequest ?
             stristr($currentRequest->getHeader('User-Agent'), 'staticpublish') : false;
 
-        $isInLiveMode = Versioned::get_stage() === 'Live';
+        if (class_exists('SilverStripe\Versioned\Versioned')) {
+            $isInLiveMode = \SilverStripe\Versioned\Versioned::get_stage() === 'Live';
+        } else {
+            $isInLiveMode = false;
+        }
 
         $isInCms = Controller::curr() instanceof LeftAndMain;
 
