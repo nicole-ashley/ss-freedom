@@ -10,7 +10,14 @@ import { HTMLStencilElement, JSXBase } from '@stencil/core/internal';
 
 
 export namespace Components {
-  interface SsFreedomAdminWidget {}
+  interface SsFreedomAdminWidget {
+    'canPublish': boolean;
+    'cmsEditLink': string;
+    'isPublished': boolean;
+    'pageClassName': string;
+    'pageId': number;
+    'stage': 'Stage' | 'Live';
+  }
   interface SsFreedomObjectOptionsButton {
     'element': HTMLElement;
   }
@@ -47,7 +54,14 @@ declare global {
 }
 
 declare namespace LocalJSX {
-  interface SsFreedomAdminWidget {}
+  interface SsFreedomAdminWidget {
+    'canPublish'?: boolean;
+    'cmsEditLink'?: string;
+    'isPublished'?: boolean;
+    'pageClassName'?: string;
+    'pageId'?: number;
+    'stage'?: 'Stage' | 'Live';
+  }
   interface SsFreedomObjectOptionsButton {
     'element': HTMLElement;
   }

@@ -34,6 +34,21 @@ ss-freedom-object-options-button {
   z-index: 11;
 }
 
-ss-freedom-object-options-panel {
+ss-freedom-admin-widget {
   z-index: 12;
+}
+
+ss-freedom-object-options-panel {
+  z-index: 13;
+}
+
+@font-face {
+  font-family: silverstripe;
+  src: url('../../../../../silverstripe/admin/client/dist/fonts/silverstripe.eot');
+  src: url('../../../../../silverstripe/admin/client/dist/fonts/silverstripe.eot?#iefix') format('embedded-opentype'),
+  url('../../../../../silverstripe/admin/client/dist/fonts/silverstripe.woff') format('woff'),
+  url('../../../../../silverstripe/admin/client/dist/fonts/silverstripe.ttf') format('truetype'),
+  url('../../../../../silverstripe/admin/client/dist/fonts/silverstripe.svg#silverstripe') format('svg');
+  font-weight: 400;
+  font-style: normal
 }

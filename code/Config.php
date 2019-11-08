@@ -39,23 +39,24 @@ class Config
         return json_encode($config->get('tinymce'));
     }
 
-    public static function isActive(DataObject $object = null)
+    public static function isWidgetActive(DataObject $object = null)
     {
         $currentRequest = Controller::has_curr() ? Controller::curr()->getRequest() : null;
 
         $isStaticPublishing = $currentRequest ?
             stristr($currentRequest->getHeader('User-Agent'), 'staticpublish') : false;
 
-        if (class_exists('SilverStripe\Versioned\Versioned')) {
-            $isInLiveMode = \SilverStripe\Versioned\Versioned::get_stage() === 'Live';
-        } else {
-            $isInLiveMode = false;
-        }
-
         $isInCms = Controller::curr() instanceof LeftAndMain;
 
-        return !$isStaticPublishing && !$isInLiveMode && !$isInCms &&
+        return !$isStaticPublishing && !$isInCms &&
             Permission::check('NIKROLLS_SSFREEDOM_EDIT') &&
             (!$object || $object->canEdit());
+    }
+
+    public static function isAugmentationActive(DataObject $object = null)
+    {
+        $isWidgetActive = static::isWidgetActive($object);
+        $isInStageMode = Versioned::get_stage() !== 'Live';
+        return $isWidgetActive && $isInStageMode;
     }
 }

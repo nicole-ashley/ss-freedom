@@ -8,7 +8,7 @@ class ShortcodeParser extends \SilverStripe\View\Parsers\ShortcodeParser
 {
     public function getShortcodeReplacementText($tag, $extra = [], $isHTMLAllowed = true)
     {
-        if (!Config::isActive()) {
+        if (!Config::isAugmentationActive()) {
             return parent::getShortcodeReplacementText($tag, $extra = [], $isHTMLAllowed);
         }
 
