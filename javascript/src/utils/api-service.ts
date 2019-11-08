@@ -12,7 +12,12 @@ export class ApiService {
       method: 'GET',
       credentials: 'include'
     });
-    return await response.text();
+
+    if (response.ok) {
+      return await response.text();
+    } else {
+      throw response;
+    }
   }
 
   async updateObject(className, id, data) {
@@ -21,7 +26,26 @@ export class ApiService {
       credentials: 'include',
       body: JSON.stringify({class: className, id, data})
     });
-    return await response.text();
+
+    if (response.ok) {
+      return await response.text();
+    } else {
+      throw response;
+    }
+  }
+
+  async publishObject(className, id) {
+    const response = await this.fetch(this.apiUrlFor('publishObject'), {
+      method: 'POST',
+      credentials: 'include',
+      body: JSON.stringify({class: className, id})
+    });
+
+    if (response.ok) {
+      return await response.text();
+    } else {
+      throw response;
+    }
   }
 
   async getLinkList() {
@@ -29,7 +53,12 @@ export class ApiService {
       method: 'GET',
       credentials: 'include'
     });
-    return await response.json();
+
+    if (response.ok) {
+      return await response.json();
+    } else {
+      throw response;
+    }
   }
 
   private apiUrlFor(endpoint) {

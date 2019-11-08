@@ -13,12 +13,14 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\PermissionProvider;
+use SilverStripe\Versioned\Versioned;
 
 class ApiController extends Controller implements PermissionProvider
 {
     private static $allowed_actions = [
         'getOptionsForm' => 'NIKROLLS_SSFREEDOM_EDIT',
         'updateObject' => 'NIKROLLS_SSFREEDOM_EDIT',
+        'publishObject' => 'NIKROLLS_SSFREEDOM_EDIT',
         'getLinkList' => 'NIKROLLS_SSFREEDOM_EDIT'
     ];
 
@@ -66,6 +68,24 @@ class ApiController extends Controller implements PermissionProvider
         return $this->renderObject($this->getObjectById($object->ClassName, $object->ID));
     }
 
+    public function publishObject(HTTPRequest $request)
+    {
+        $this->ensureStagedMode();
+        $this->ensureHttpMethod('POST');
+
+        $body = json_decode($request->getBody());
+        $this->ensureIdProperty($body);
+
+        $this->ensureClassIsDataObject($body);
+        /** @var DataObject | Versioned $object */
+        $object = $this->getObjectById($body->class, $body->id);
+        $this->ensureObjectCanBePublished($object);
+
+        $object->publishRecursive();
+
+        return $this->renderObject($this->getObjectById($object->ClassName, $object->ID));
+    }
+
     public function getLinkList(HTTPRequest $request)
     {
         $this->ensureStagedMode();
@@ -81,9 +101,7 @@ class ApiController extends Controller implements PermissionProvider
 
     private function ensureStagedMode()
     {
-        if (class_exists('SilverStripe\Versioned\Versioned')) {
-            \SilverStripe\Versioned\Versioned::set_reading_mode('Stage.Stage');
-        }
+        Versioned::set_reading_mode('Stage.Stage');
     }
 
     private function ensureHttpMethod(string $method)
@@ -116,7 +134,7 @@ class ApiController extends Controller implements PermissionProvider
 
     private function ensureClassIsDataObject(object $body)
     {
-        if (!array_search($body->class, ClassInfo::getValidSubClasses('SilverStripe\ORM\DataObject'))) {
+        if (!array_search($body->class, ClassInfo::getValidSubClasses(DataObject::class))) {
             $this->httpError(422, "No such data object: $body->class");
         }
     }
@@ -143,6 +161,13 @@ class ApiController extends Controller implements PermissionProvider
     {
         if (!$object->canEdit()) {
             $this->httpError(403, 'You don\'t have permission to edit this object.');
+        }
+    }
+
+    private function ensureObjectCanBePublished(DataObject $object)
+    {
+        if (!($object->hasMethod('canPublish') && $object->canPublish())) {
+            $this->httpError(403, 'You don\'t have permission to publish this object.');
         }
     }
 

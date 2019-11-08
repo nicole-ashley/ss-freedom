@@ -37,7 +37,7 @@ export class SsFreedomObjectOptionsButton {
   render() {
     return (
       <button onClick={() => this.openOptionsWidget()}>
-        <ion-icon name="settings"></ion-icon>
+        <ion-icon name="settings"/>
       </button>
     );
   }

@@ -16,7 +16,7 @@ class TemplateAugmentor extends DataExtension
 {
     public function FreedomIsActive()
     {
-        return Config::isActive($this->owner);
+        return Config::isAugmentationActive($this->owner);
     }
 
     public function FreedomAttributes($for, $hiddenWhenEmpty = false)

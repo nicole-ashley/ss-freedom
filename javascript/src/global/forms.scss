@@ -1,0 +1,11 @@
+@mixin label {
+  color: rgba(34, 47, 62, 0.7);
+  font-size: 0.875rem;
+}
+
+@mixin field {
+  border: solid $border-width #ccc;
+  border-radius: $border-radius;
+  padding: 0.31rem 0.29rem;
+  font-size: 1rem;
+}

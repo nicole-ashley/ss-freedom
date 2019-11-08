@@ -80,7 +80,7 @@ export class SsFreedomObjectOptionsPanel {
 
   render() {
     if (this.loading) {
-      return <ion-icon name="sync"></ion-icon>;
+      return <ion-icon name="sync"/>;
     } else {
       return (
         <Host>
