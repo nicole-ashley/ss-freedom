@@ -72,7 +72,24 @@ export class ObjectOptionsInstanceWrangler {
 
   private activateHoverState() {
     this.element.addEventListener('mouseleave', this.elementLeaveHandler);
-    this.element.classList.add('ss-freedom-show-hidden-empty');
+
+    const ancestry = [this.element];
+    let closest = this.element;
+    do {
+      closest = closest.parentElement.closest('[data-ss-freedom-object]');
+      if (closest) {
+        ancestry.unshift(closest);
+      }
+    } while (closest);
+
+    document.querySelectorAll('.ss-freedom-show-hidden-empty')
+      .forEach(e => e.classList.remove('ss-freedom-show-hidden-empty'));
+    ancestry.forEach((element) => {
+      element.querySelectorAll('[data-ss-freedom-hidden-when-empty]')
+        .forEach(e => e.classList.add('ss-freedom-show-hidden-empty'));
+      element.querySelectorAll('[data-ss-freedom-object] [data-ss-freedom-object]  [data-ss-freedom-object] [data-ss-freedom-hidden-when-empty]')
+        .forEach(e => e.classList.remove('ss-freedom-show-hidden-empty'));
+    });
 
     const widget = document.createElement('ss-freedom-object-options-button');
     widget['element'] = this.element;
@@ -83,7 +100,6 @@ export class ObjectOptionsInstanceWrangler {
 
   private removeHoverState() {
     this.element.removeEventListener('mouseleave', this.elementLeaveHandler);
-    this.element.classList.remove('ss-freedom-show-hidden-empty');
 
     if (this.optionsButton) {
       this.optionsButton.removeEventListener('mouseover', this.popupOverHandler);

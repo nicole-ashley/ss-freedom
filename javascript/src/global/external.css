@@ -16,8 +16,7 @@
   background-color: rgba(0, 0, 0, 0.05) !important;
 }
 
-[data-ss-freedom-object]:not(.ss-freedom-show-hidden-empty) [data-ss-freedom-hidden-when-empty].ss-freedom-empty,
-[data-ss-freedom-object].ss-freedom-show-hidden-empty [data-ss-freedom-object]:not(.ss-freedom-show-hidden-empty) [data-ss-freedom-hidden-when-empty].ss-freedom-empty {
+.ss-freedom-empty:not(.ss-freedom-show-hidden-empty) {
   display: none;
 }
 

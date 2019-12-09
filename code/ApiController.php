@@ -187,7 +187,7 @@ class ApiController extends Controller implements PermissionProvider
                 $treePrefix = '';
             }
             if ($depth > 0) {
-                $treePrefix .= $isLast ? '┗ ' : '┣　';
+                $treePrefix .= $isLast ? '┗　' : '┣　';
             }
             $output[] = ['title' => $treePrefix . $page->MenuTitle, 'value' => "[sitetree_link id={$page->ID}]"];
 
