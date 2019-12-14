@@ -41,13 +41,18 @@ label {
   margin-bottom: 0.5rem;
 }
 
-input,
+input:not([type="checkbox"],[type="radio"]),
 select,
 textarea {
   min-width: 100%;
   border: solid $border-width #ccc;
   border-radius: $border-radius;
   padding: 0.31rem 0.29rem;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  transform: translateY(2px);
 }
 
 input,

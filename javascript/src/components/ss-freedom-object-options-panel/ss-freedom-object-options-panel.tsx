@@ -44,7 +44,7 @@ export class SsFreedomObjectOptionsPanel {
     const fields = Array.from(this.formWrapper.querySelectorAll('[name]'));
     const formData = fields.reduce((data, field) => {
       if (field instanceof HTMLInputElement) {
-        data[field.name] = field.value;
+        data[field.name] = field.type === 'checkbox' ? field.checked : field.value;
       } else if (field instanceof HTMLSelectElement) {
         data[field.name] = field.options[field.selectedIndex].value;
       } else if (field instanceof HTMLTextAreaElement) {
