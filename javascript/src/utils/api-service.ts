@@ -7,6 +7,19 @@ export class ApiService {
     this.fetch = _fetch;
   }
 
+  async getObjectInfo(className, id) {
+    const response = await this.fetch(this.apiUrlFor('getObjectInfo') + `?class=${className}&id=${id}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (response.ok) {
+      return await response.json();
+    } else {
+      throw response;
+    }
+  }
+
   async getOptionsForm(className, id) {
     const response = await this.fetch(this.apiUrlFor('getOptionsForm') + `?class=${className}&id=${id}`, {
       method: 'GET',

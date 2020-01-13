@@ -1,4 +1,4 @@
-import {Component, h, Prop, State} from '@stencil/core';
+import {Component, h, Method, Prop, State} from '@stencil/core';
 import {TinyMceWrangler} from '../../utils/tiny-mce-wrangler';
 import {ObjectOptionsWrangler} from '../../utils/object-options-wrangler';
 import {ApiService} from "../../utils/api-service";
@@ -17,9 +17,12 @@ export class SsFreedomAdminWidget {
   @Prop() cmsEditLink: string;
   @State() private isOpen = false;
   private api: ApiService;
-  private wrapper: HTMLElement;
-  private widgetForm: HTMLElement;
   private stageDropdown: HTMLSelectElement;
+
+  static async RefreshPublishedStatus() {
+    document.querySelectorAll('ss-freedom-admin-widget')
+      .forEach((widget: any) => widget.refreshPublishedStatus());
+  }
 
   constructor() {
     this.api = new ApiService();
@@ -34,20 +37,19 @@ export class SsFreedomAdminWidget {
 
   open() {
     this.isOpen = true;
-    window.setTimeout(() => {
-      const formSize = this.widgetForm.getBoundingClientRect();
-      this.wrapper.style.setProperty('--width', formSize.width + 'px');
-      this.wrapper.style.setProperty('--height', formSize.height + 'px');
-    }, 0);
   }
 
   close() {
     this.isOpen = false;
-    this.wrapper.style.removeProperty('--width');
-    this.wrapper.style.removeProperty('--height');
   }
 
-  changeStage() {
+  @Method()
+  async refreshPublishedStatus() {
+    const {published} = await this.api.getObjectInfo(this.pageClassName, this.pageId);
+    this.isPublished = published;
+  }
+
+  private changeStage() {
     const newStage = this.stageDropdown.value;
     const url = new URL(window.location.toString());
     if (newStage === 'Live') {
@@ -58,7 +60,7 @@ export class SsFreedomAdminWidget {
     window.location.replace(url.toString());
   }
 
-  async publishPage(target: EventTarget) {
+  private async publishPage(target: EventTarget) {
     const button = (target as HTMLElement).closest('button');
     button.disabled = true;
     button.classList.add('publishing');
@@ -68,8 +70,8 @@ export class SsFreedomAdminWidget {
 
   render() {
     return (
-      <div class={this.isOpen ? 'open' : 'closed'} ref={el => this.wrapper = el}>
-        <form ref={el => this.widgetForm = el}>
+      <div class={this.isOpen ? 'open' : 'closed'}>
+        <form>
           <label>
             Stage:
             <select ref={el => this.stageDropdown = el} onChange={() => this.changeStage()}>

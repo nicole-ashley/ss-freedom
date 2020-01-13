@@ -16,6 +16,7 @@ export namespace Components {
     'isPublished': boolean;
     'pageClassName': string;
     'pageId': number;
+    'refreshPublishedStatus': () => Promise<void>;
     'stage': 'Stage' | 'Live';
   }
   interface SsFreedomObjectOptionsButton {

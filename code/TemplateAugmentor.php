@@ -8,6 +8,8 @@ use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBHTMLText;
+use SilverStripe\Versioned\RecursivePublishable;
+use SilverStripe\Versioned\Versioned;
 
 /**
  * @property DataObject owner
@@ -19,12 +21,30 @@ class TemplateAugmentor extends DataExtension
         return Config::isAugmentationActive($this->owner);
     }
 
-    public function FreedomAttributes($for, $hiddenWhenEmpty = false)
+    public function FreedomAttributes($for = '$self', $hiddenWhenEmpty = false)
     {
         if (!$this->FreedomIsActive()) {
             return '';
         }
 
+        $data = $this->getFreedomAttributes($for);
+
+        if (!$data) {
+            return '';
+        }
+
+        $jsonData = Convert::raw2att(json_encode($data['data']));
+        $output = ["data-ss-freedom-{$data['type']}=\"$jsonData\""];
+
+        if ($hiddenWhenEmpty) {
+            $output[] = 'data-ss-freedom-hidden-when-empty';
+        }
+
+        return $this->asHTML(implode(' ', $output));
+    }
+
+    public function getFreedomAttributes($for = '$self')
+    {
         $attribute = null;
 
         if ($for === '$self') {
@@ -44,34 +64,58 @@ class TemplateAugmentor extends DataExtension
             ];
         }
 
-        if (!$attribute) {
-            return '';
+        return $attribute;
+    }
+
+    public function isLiveVersionRecursive()
+    {
+        if ($this->owner->hasExtension(Versioned::class)) {
+            $pageIsLive = $this->owner->isLiveVersion();
+
+            $ownedNotLive = null;
+            if ($this->owner->hasExtension(RecursivePublishable::class)) {
+                $owned = $this->owner->findOwned();
+
+                foreach ($owned as $item) {
+                    if (!$item->isLiveVersion()) {
+                        $ownedNotLive = $item;
+                        break;
+                    }
+                }
+            }
+
+            return $pageIsLive && empty($ownedNotLive);
+        } else {
+            return null;
         }
-
-        $jsonData = Convert::raw2att(json_encode($attribute['data']));
-        $output = ["data-ss-freedom-{$attribute['type']}=\"$jsonData\""];
-
-        if ($hiddenWhenEmpty) {
-            $output[] = 'data-ss-freedom-hidden-when-empty';
-        }
-
-        return $this->asHTML(implode(' ', $output));
     }
 
     private function dataForCurrentObject()
     {
-        $output = [
+        $data = [
             'class' => get_class($this->owner),
             'id' => $this->owner->ID,
             'hasOptions' => $this->owner instanceof ObjectOptionsFields
         ];
 
+        $data = $this->addPublishedDataForObjectIfAvailable($data, $this->owner);
+
         $relatedObjects = $this->findMultipleReferences();
         if (!empty($relatedObjects)) {
-            $output['potentiallyReusedIn'] = $relatedObjects;
+            $data['potentiallyReusedIn'] = $relatedObjects;
         }
 
-        return $output;
+        return $data;
+    }
+
+    private function addPublishedDataForObjectIfAvailable(array $data, DataObject $object)
+    {
+        if ($object->hasExtension(Versioned::class)) {
+            $data['published'] = $object->hasMethod('isLiveVersionRecursive') ?
+                $object->isLiveVersionRecursive() : $object->isLiveVersion();
+        }
+
+        return $data;
     }
 
     private function findMultipleReferences()

@@ -2,6 +2,7 @@ import * as tinymce from 'tinymce';
 import he from 'he';
 import {ApiService} from './api-service';
 import {ElementMetadata} from './element-metadata';
+import {SsFreedomAdminWidget} from "../components/ss-freedom-admin-widget/ss-freedom-admin-widget";
 
 declare global {
   interface Window {
@@ -227,6 +228,8 @@ export class TinyMceWrangler {
     const object = ElementMetadata.getObjectDataForFieldElement(editor.getBody());
     const data = {};
     data[ElementMetadata.getElementConfiguration(editor.getBody()).name] = editor.getContent();
-    return await this.apiService.updateObject(object.class, object.id, data);
+    const result = await this.apiService.updateObject(object.class, object.id, data);
+    SsFreedomAdminWidget.RefreshPublishedStatus();
+    return result;
   }
 }

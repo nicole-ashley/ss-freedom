@@ -13,16 +13,36 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\PermissionProvider;
+use SilverStripe\Security\Security;
 use SilverStripe\Versioned\Versioned;
 
 class ApiController extends Controller implements PermissionProvider
 {
     private static $allowed_actions = [
+        'getObjectInfo' => 'NIKROLLS_SSFREEDOM_EDIT',
         'getOptionsForm' => 'NIKROLLS_SSFREEDOM_EDIT',
         'updateObject' => 'NIKROLLS_SSFREEDOM_EDIT',
         'publishObject' => 'NIKROLLS_SSFREEDOM_EDIT',
         'getLinkList' => 'NIKROLLS_SSFREEDOM_EDIT'
     ];
+
+    public function getObjectInfo(HTTPRequest $request)
+    {
+        $this->ensureStagedMode();
+        $this->ensureHttpMethod('GET');
+
+        $vars = (object)$request->getVars();
+
+        $this->ensureIdProperty($vars);
+        $this->ensureClassIsDataObject($vars);
+
+        $object = $this->getObjectById($vars->class, $vars->id);
+
+        $response = HTTPResponse::create();
+        $response->addHeader('Content-Type', 'application/json');
+        $response->setBody(json_encode($object->getFreedomAttributes()['data']));
+        return $response;
+    }
 
     public function getOptionsForm(HTTPRequest $request)
     {
@@ -176,7 +196,17 @@ class ApiController extends Controller implements PermissionProvider
         foreach (get_object_vars($data) as $key => $value) {
             $object->setField($key, $value);
         }
-        $object->write();
+
+        if ($object->hasExtension(Versioned::class)) {
+            $version = Versioned::get_version($object->ClassName, $object->ID, $object->Version);
+            if (!$version->WasPublished && $version->Author()->ID == Security::getCurrentUser()->ID) {
+                $object->writeWithoutVersion();
+            } else {
+                $object->write();
+            }
+        } else {
+            $object->write();
+        }
     }
 
     private function renderObject(DataObject $object)

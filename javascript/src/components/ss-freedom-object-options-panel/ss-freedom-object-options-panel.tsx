@@ -2,6 +2,7 @@ import {Component, Element, h, Host, Prop, State} from '@stencil/core';
 import {ApiService} from '../../utils/api-service';
 import {ElementMetadata} from '../../utils/element-metadata';
 import {ElementFollower} from '../../utils/element-follower';
+import {SsFreedomAdminWidget} from "../ss-freedom-admin-widget/ss-freedom-admin-widget";
 
 @Component({
   tag: 'ss-freedom-object-options-panel',
@@ -55,6 +56,7 @@ export class SsFreedomObjectOptionsPanel {
     const newHtml = await this.api.updateObject(this.metadata.class, this.metadata.id, formData);
     this.updateObjectHtml(newHtml);
     this.close();
+    SsFreedomAdminWidget.RefreshPublishedStatus();
   }
 
   private updateObjectHtml(newHtml: string) {

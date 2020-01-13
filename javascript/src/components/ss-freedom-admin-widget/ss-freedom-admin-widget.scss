@@ -1,29 +1,30 @@
 div {
-  --width: 4rem;
-  --height: 4rem;
-
+  --easing: cubic-bezier(0.165, 0.84, 0.44, 1);
   position: fixed;
   z-index: 2;
   bottom: 1rem;
   left: 1rem;
+  width: auto;
+  height: auto;
   box-sizing: content-box;
   box-shadow: 0 0 $shadow-spread $shadow-colour;
   border: solid $border-width;
   overflow: hidden;
-  transition-property: border-color, border-radius, background-color, width, height;
+  transition-property: border-color, border-radius, background-color, padding, max-width, max-height;
   transition-duration: 500ms;
-  transition-timing-function: cubic-bezier(0.165, 0.84, 0.44, 1);
+  transition-timing-function: var(--easing);
 
   &.closed {
+    max-width: 4rem;
+    max-height: 4rem;
     border-color: transparent;
     border-radius: 50%;
     background-color: #004a7a;
-    width: var(--width);
-    height: var(--height);
     padding: 0;
 
-    button.silverstripe {
-      display: block;
+    form {
+      opacity: 0;
+      pointer-events: none;
     }
   }
 
@@ -31,25 +32,30 @@ div {
     border-color: lightgrey;
     border-radius: $border-radius;
     background-color: white;
-    width: var(--width);
-    height: var(--height);
     padding: 2rem 1rem 0.5rem;
+    max-width: 8rem;
+    max-height: 11rem;
 
-    form {
-      display: block;
+    button.silverstripe {
+      opacity: 0;
+      pointer-events: none;
     }
   }
 }
 
 button.silverstripe,
 form {
-  display: none;
+  transition: opacity 500ms var(--easing);
 }
 
 button.silverstripe {
+  position: absolute;
   color: white;
-  width: 100%;
-  height: 100%;
+  width: 4rem;
+  height: 4rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   font-size: 2rem;
   appearance: none;
   background: none;
@@ -76,7 +82,7 @@ button.silverstripe {
 }
 
 form {
-  position: absolute;
+  //position: absolute;
 
   > * {
     display: block;
@@ -89,6 +95,7 @@ form {
 
   select {
     @include field;
+    display: block;
   }
 
   button.publish,
@@ -125,7 +132,7 @@ form {
   .settings,
   .close {
     position: absolute;
-    top: -2rem;
+    top: 0rem;
     width: 2.5rem;
     height: 2.5rem;
     appearance: none;

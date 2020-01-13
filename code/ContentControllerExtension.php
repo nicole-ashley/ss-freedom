@@ -3,10 +3,8 @@
 namespace NikRolls\SsFreedom;
 
 use SilverStripe\CMS\Controllers\ContentController;
-use SilverStripe\Core\Convert;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Extension;
-use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Security\Permission;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\View\Requirements;
