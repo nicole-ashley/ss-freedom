@@ -19,6 +19,7 @@ export class SsFreedomObjectOptionsPanel {
   private metadata: { class: string; id: number };
   private api: ApiService;
   private formWrapper: HTMLElement;
+  private minimumWidth: number;
 
   constructor() {
     this.api = new ApiService();
@@ -34,10 +35,28 @@ export class SsFreedomObjectOptionsPanel {
     this.elementFollower.stopFollowing();
   }
 
+  startHorizontalDrag() {
+    const handler = this.handleHorizontalDrag.bind(this);
+    document.body.addEventListener('pointermove', handler)
+    document.body.addEventListener(
+      'pointerup',
+      () => document.body.removeEventListener('pointermove', handler),
+      {once: true}
+    );
+  }
+
+  handleHorizontalDrag(event: PointerEvent) {
+    const right = this.host.getBoundingClientRect().right;
+    const mouseX = event.clientX;
+    const newWidth = Math.max(right - mouseX, this.minimumWidth);
+    this.host.style.width = newWidth + 'px';
+  }
+
   async instantiateOptionsForm() {
     this.metadata = ElementMetadata.getObjectDataForFieldElement(this.element);
     this.formHtml = await this.api.getOptionsForm(this.metadata.class, this.metadata.id);
     this.loading = false;
+    window.requestAnimationFrame(() => this.minimumWidth = this.host.getBoundingClientRect().width);
   }
 
   async saveChanges() {
@@ -85,10 +104,11 @@ export class SsFreedomObjectOptionsPanel {
       return <ion-icon name="sync"/>;
     } else {
       return (
-        <Host>
+        <Host class="loaded">
           <div ref={el => this.formWrapper = el} innerHTML={this.formHtml}></div>
           <button type="submit" onClick={() => this.saveChanges()}>Save</button>
           <button onClick={() => this.close()}>Cancel</button>
+          <div class="horizontal-resize" onPointerDown={() => this.startHorizontalDrag()}></div>
         </Host>
       );
     }

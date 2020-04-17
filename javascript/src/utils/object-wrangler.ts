@@ -1,6 +1,6 @@
-import {ObjectOptionsInstanceWrangler} from './object-options-instance-wrangler';
+import {ObjectInstanceWrangler} from './object-instance-wrangler';
 
-export class ObjectOptionsWrangler {
+export class ObjectWrangler {
   private observer: MutationObserver;
   private htmlElement: Element;
 
@@ -37,12 +37,11 @@ export class ObjectOptionsWrangler {
   }
 
   private wireObjectOptionsIfNecessary(element: HTMLElement) {
-    const data = JSON.parse(element.dataset.ssFreedomObject);
-    if (data.hasOptions && !element['ssFreedomObjectOptionsInstanceWrangler']) {
-      element['ssFreedomObjectOptionsInstanceWrangler'] = new ObjectOptionsInstanceWrangler(element);
-    } else if (!data.hasOptions && element['ssFreedomObjectOptionsInstanceWrangler']) {
-      element['ssFreedomObjectOptionsInstanceWrangler'].destroy();
-      delete element['ssFreedomObjectOptionsInstanceWrangler'];
+    if (!element['ssFreedomObjectInstanceWrangler']) {
+      element['ssFreedomObjectInstanceWrangler'] = new ObjectInstanceWrangler(element);
+    } else {
+      element['ssFreedomObjectInstanceWrangler'].destroy();
+      delete element['ssFreedomObjectInstanceWrangler'];
     }
   }
 }

@@ -99,11 +99,7 @@ class TemplateAugmentor extends DataExtension
         ];
 
         $data = $this->addPublishedDataForObjectIfAvailable($data, $this->owner);
-
-        $relatedObjects = $this->findMultipleReferences();
-        if (!empty($relatedObjects)) {
-            $data['potentiallyReusedIn'] = $relatedObjects;
-        }
+        $data = $this->addAlertInformationForObjectIfAvailable($data, $this->owner);
 
         return $data;
     }
@@ -118,49 +114,16 @@ class TemplateAugmentor extends DataExtension
         return $data;
     }
 
-    private function findMultipleReferences()
+    private function addAlertInformationForObjectIfAvailable(array $data, DataObject $object)
     {
-        $list = ArrayList::create();
-        $list->merge($this->findRelatedObjectsFor('has_many'));
-        $list->merge($this->findRelatedObjectsFor('many_many'));
-        $list->merge($this->findRelatedObjectsFor('belongs_many_many'));
-
-        $grouped = $this->groupRelatedObjectsByClass($list);
-        $output = [];
-        foreach ($grouped as $items) {
-            $unique = $items->columnUnique('ID');
-            if (count($unique) > 1) {
-                $output[] = [
-                    'type' => $items->first()->singular_name(),
-                    'names' => $items->columnUnique('Title')
-                ];
+        if ($object instanceof ObjectAlerts) {
+            $alerts = array_filter((array)$object->getObjectAlerts());
+            if (count($alerts)) {
+                $data['alerts'] = $alerts;
             }
         }
-        return $output;
-    }
 
-    private function findRelatedObjectsFor($type)
-    {
-        $relationships = $this->owner->config()->get($type);
-        $list = ArrayList::create();
-        foreach ($relationships as $name => $class) {
-            if ($this->owner->hasMethod($name)) {
-                $list->merge($this->owner->$name());
-            }
-        }
-        return $list;
-    }
-
-    private function groupRelatedObjectsByClass($list)
-    {
-        $output = [];
-        foreach ($list as $item) {
-            $itemClass = get_class($item);
-            $outputList = isset($output[$itemClass]) ? $output[$itemClass] : ArrayList::create();
-            $outputList->push($item);
-            $output[$itemClass] = $outputList;
-        }
-        return $output;
+        return $data;
     }
 
     private function hasDbField($fieldName)

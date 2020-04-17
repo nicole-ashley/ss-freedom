@@ -3,12 +3,16 @@ export class ElementMetadata {
     return JSON.parse(element.dataset.ssFreedomField);
   }
 
+  public static getObjectData(element: HTMLElement) {
+    return JSON.parse(element.dataset.ssFreedomObject);
+  }
+
   public static getObjectDataForFieldElement(element: HTMLElement) {
     const objectElement = <HTMLElement>element.closest('[data-ss-freedom-object]');
-    const configuration = JSON.parse(objectElement.dataset.ssFreedomObject);
+    const data = this.getObjectData(objectElement);
     return {
-      class: configuration.class,
-      id: configuration.id
+      class: data.class,
+      id: data.id
     }
   }
 }

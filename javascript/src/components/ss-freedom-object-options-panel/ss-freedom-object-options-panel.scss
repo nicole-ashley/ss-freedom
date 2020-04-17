@@ -11,6 +11,11 @@
   line-height: 0;
 }
 
+:host(.loaded) {
+  border-left-style: double;
+  border-left-width: $border-width * 3;
+}
+
 ion-icon {
   animation: 1s infinite linear spin-anti;
   font-size: 1.25rem;
@@ -40,14 +45,11 @@ label {
   margin-bottom: 0.5rem;
 }
 
-input:not([type="checkbox"],[type="radio"]),
+input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
   @include field;
   min-width: 100%;
-  border: solid $border-width #ccc;
-  border-radius: $border-radius;
-  padding: 0.31rem 0.29rem;
 }
 
 input[type="checkbox"],
@@ -74,4 +76,15 @@ button:not([type="submit"]) {
 
 button[type="submit"] {
   @include primary-button;
+}
+
+.horizontal-resize {
+  position: absolute;
+  width: 1rem;
+  height: 100%;
+  top: 0;
+  left: -0.5rem;
+  z-index: 1;
+  cursor: ew-resize;
+  user-select: none;
 }

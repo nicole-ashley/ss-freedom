@@ -1,6 +1,6 @@
 import {Component, h, Method, Prop, State} from '@stencil/core';
 import {TinyMceWrangler} from '../../utils/tiny-mce-wrangler';
-import {ObjectOptionsWrangler} from '../../utils/object-options-wrangler';
+import {ObjectWrangler} from '../../utils/object-wrangler';
 import {ApiService} from "../../utils/api-service";
 
 @Component({
@@ -31,7 +31,7 @@ export class SsFreedomAdminWidget {
   componentWillLoad() {
     if (this.stage !== 'Live') {
       new TinyMceWrangler().observeDom();
-      new ObjectOptionsWrangler().observeDom();
+      new ObjectWrangler().observeDom();
     }
   }
 

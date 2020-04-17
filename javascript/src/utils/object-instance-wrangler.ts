@@ -1,6 +1,9 @@
-export class ObjectOptionsInstanceWrangler {
+import {ElementMetadata} from './element-metadata';
+
+export class ObjectInstanceWrangler {
   private element: HTMLElement;
   private optionsButton: HTMLElement;
+  private alertButton: HTMLElement;
   private elementHovered = false;
   private popupHovered = false;
 
@@ -48,6 +51,7 @@ export class ObjectOptionsInstanceWrangler {
     const hoveredPopup = document.querySelector([
       'ss-freedom-object-options-button:hover',
       'ss-freedom-object-options-panel:hover',
+      'ss-freedom-object-alert-button:hover',
       '.tox:hover'
     ].join(','));
     if (hoveredPopup) {
@@ -55,9 +59,9 @@ export class ObjectOptionsInstanceWrangler {
       hoveredPopup.addEventListener('mouseleave', this.popupLeaveHandler);
     }
 
-    if ((this.elementHovered || this.popupHovered) && !this.optionsButton) {
+    if ((this.elementHovered || this.popupHovered) && !this.optionsButton && !this.alertButton) {
       this.activateHoverState();
-    } else if (!(this.elementHovered || this.popupHovered) && this.optionsButton) {
+    } else if (!(this.elementHovered || this.popupHovered) && (this.optionsButton || this.alertButton)) {
       this.removeHoverState();
     }
   }
@@ -91,11 +95,19 @@ export class ObjectOptionsInstanceWrangler {
         .forEach(e => e.classList.remove('ss-freedom-show-hidden-empty'));
     });
 
-    const widget = document.createElement('ss-freedom-object-options-button');
-    widget['element'] = this.element;
+    const metadata = ElementMetadata.getObjectData(this.element);
 
-    document.body.appendChild(widget);
-    this.optionsButton = widget;
+    if(metadata.hasOptions) {
+      this.optionsButton = document.createElement('ss-freedom-object-options-button');
+      this.optionsButton['element'] = this.element;
+      document.body.appendChild(this.optionsButton);
+    }
+
+    if (metadata.alerts) {
+      this.alertButton = document.createElement('ss-freedom-object-alert-button');
+      this.alertButton['element'] = this.element;
+      document.body.appendChild(this.alertButton);
+    }
   }
 
   private removeHoverState() {
@@ -106,6 +118,13 @@ export class ObjectOptionsInstanceWrangler {
       this.optionsButton.removeEventListener('mouseleave', this.popupLeaveHandler);
       this.optionsButton.remove();
       delete this.optionsButton;
+    }
+
+    if (this.alertButton) {
+      this.alertButton.removeEventListener('mouseover', this.popupOverHandler);
+      this.alertButton.removeEventListener('mouseleave', this.popupLeaveHandler);
+      this.alertButton.remove();
+      delete this.alertButton;
     }
   }
 }

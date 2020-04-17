@@ -1,0 +1,32 @@
+button {
+  appearance: none;
+  border: solid $border-width lightgrey;
+  border-radius: $border-radius;
+  border-top-right-radius: 0;
+  box-shadow: 0 0 $shadow-spread $shadow-colour;
+  background-color: white;
+  padding: 0.5rem;
+  line-height: 0;
+
+  transition: background-color $hover-transition-duration;
+}
+
+button:hover {
+  background-color: lightgrey;
+}
+
+ion-icon {
+  font-size: 1.25rem;
+
+  &[aria-label~="alert"] {
+    color: $error-color;
+  }
+
+  &[aria-label~="warning"] {
+    color: $warning-color;
+  }
+
+  &[aria-label~="information"] {
+    color: $primary-action-colour;
+  }
+}
