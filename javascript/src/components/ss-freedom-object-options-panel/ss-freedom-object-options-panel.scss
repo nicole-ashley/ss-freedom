@@ -14,6 +14,9 @@
 :host(.loaded) {
   border-left-style: double;
   border-left-width: $border-width * 3;
+  width: var(--width);
+  min-width: var(--initial-width);
+  max-width: 100%;
 }
 
 ion-icon {

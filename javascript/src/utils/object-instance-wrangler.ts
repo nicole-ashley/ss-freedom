@@ -100,13 +100,13 @@ export class ObjectInstanceWrangler {
     if(metadata.hasOptions) {
       this.optionsButton = document.createElement('ss-freedom-object-options-button');
       this.optionsButton['element'] = this.element;
-      document.body.appendChild(this.optionsButton);
+      document.body.prepend(this.optionsButton);
     }
 
     if (metadata.alerts) {
       this.alertButton = document.createElement('ss-freedom-object-alert-button');
       this.alertButton['element'] = this.element;
-      document.body.appendChild(this.alertButton);
+      document.body.prepend(this.alertButton);
     }
   }
 

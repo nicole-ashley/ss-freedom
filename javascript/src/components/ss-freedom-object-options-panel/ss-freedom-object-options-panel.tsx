@@ -19,7 +19,6 @@ export class SsFreedomObjectOptionsPanel {
   private metadata: { class: string; id: number };
   private api: ApiService;
   private formWrapper: HTMLElement;
-  private minimumWidth: number;
 
   constructor() {
     this.api = new ApiService();
@@ -46,17 +45,17 @@ export class SsFreedomObjectOptionsPanel {
   }
 
   handleHorizontalDrag(event: PointerEvent) {
-    const right = this.host.getBoundingClientRect().right;
-    const mouseX = event.clientX;
-    const newWidth = Math.max(right - mouseX, this.minimumWidth);
-    this.host.style.width = newWidth + 'px';
+    const newWidth = this.host.getBoundingClientRect().right - event.clientX;
+    this.host.style.setProperty('--width', newWidth + 'px');
   }
 
   async instantiateOptionsForm() {
     this.metadata = ElementMetadata.getObjectDataForFieldElement(this.element);
     this.formHtml = await this.api.getOptionsForm(this.metadata.class, this.metadata.id);
     this.loading = false;
-    window.requestAnimationFrame(() => this.minimumWidth = this.host.getBoundingClientRect().width);
+    window.requestAnimationFrame(() => {
+      this.host.style.setProperty('--initial-width', this.host.getBoundingClientRect().width + 'px');
+    });
   }
 
   async saveChanges() {

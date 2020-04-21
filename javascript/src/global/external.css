@@ -26,7 +26,8 @@ span[data-ss-freedom-field].ss-freedom-empty:not(.mce-edit-focus) {
   height: 1.25em;
 }
 
-ss-freedom-object-options-button {
+ss-freedom-object-options-button,
+ss-freedom-object-alert-button {
   z-index: 10;
 }
 
