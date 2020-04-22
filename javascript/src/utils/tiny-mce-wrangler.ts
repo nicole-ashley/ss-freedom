@@ -87,6 +87,7 @@ export class TinyMceWrangler {
         setup: (editor: tinymce.Editor) => setups.forEach(fn => fn(editor)),
         init_instance_callback: (editor: tinymce.Editor) => {
           editor.on('Change', e => this.onChange(e));
+          editor.on('blur', e => this.onBlur(e));
           TinyMceWrangler.updateEmptyFlag(editor);
         },
         link_list: callback => this.apiService.getLinkList().then(callback),
@@ -144,6 +145,18 @@ export class TinyMceWrangler {
   protected async onChange(e) {
     TinyMceWrangler.updateEmptyFlag(e.target);
     await this.updateCmsWithLatestData(e.target);
+  }
+
+  protected async onBlur(e) {
+    const currentObject = ElementMetadata.getObjectForFieldElement(e.target.getBody());
+    if (currentObject['latestFieldUpdate']) {
+      const newHTML = await currentObject['latestFieldUpdate'];
+      const focusedEditor = (await this.tinyMce).focusedEditor;
+      const newObject = focusedEditor && ElementMetadata.getObjectForFieldElement(focusedEditor.getBody());
+      if (newObject !== currentObject) {
+        currentObject.outerHTML = newHTML;
+      }
+    }
   }
 
   private createTinyMceOptionsMenu(editor, configurations) {
@@ -225,11 +238,17 @@ export class TinyMceWrangler {
   }
 
   private async updateCmsWithLatestData(editor: tinymce.Editor) {
-    const object = ElementMetadata.getObjectDataForFieldElement(editor.getBody());
+    const editorBody = editor.getBody();
+    const objectElement = ElementMetadata.getObjectForFieldElement(editorBody)
+    const object = ElementMetadata.getObjectDataForFieldElement(editorBody);
+
     const data = {};
-    data[ElementMetadata.getElementConfiguration(editor.getBody()).name] = editor.getContent();
-    const result = await this.apiService.updateObject(object.class, object.id, data);
+    data[ElementMetadata.getElementConfiguration(editorBody).name] = editor.getContent();
+
+    objectElement['latestFieldUpdate'] = this.apiService.updateObject(object.class, object.id, data);
+    await objectElement['latestFieldUpdate'];
     SsFreedomAdminWidget.RefreshPublishedStatus();
-    return result;
+
+    return await objectElement['latestFieldUpdate'];
   }
 }

@@ -7,8 +7,12 @@ export class ElementMetadata {
     return JSON.parse(element.dataset.ssFreedomObject);
   }
 
+  public static getObjectForFieldElement(element: HTMLElement): HTMLElement {
+    return <HTMLElement>element.closest('[data-ss-freedom-object]');
+  }
+
   public static getObjectDataForFieldElement(element: HTMLElement) {
-    const objectElement = <HTMLElement>element.closest('[data-ss-freedom-object]');
+    const objectElement = ElementMetadata.getObjectForFieldElement(element);
     const data = this.getObjectData(objectElement);
     return {
       class: data.class,
