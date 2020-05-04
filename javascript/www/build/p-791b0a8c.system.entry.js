@@ -1,1 +1,0 @@
-System.register(["./p-2b2e18ba.system.js","./p-be02a521.system.js","./p-0b46c203.system.js"],(function(e){"use strict";return{setters:[function(){},function(s){e("ss_freedom_admin_widget",s.S)},function(){}],execute:function(){}}}));

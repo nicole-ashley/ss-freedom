@@ -3,9 +3,9 @@
 
 
 "@stencil/core@^1.12.4":
-  version "1.12.4"
-  resolved "https://registry.yarnpkg.com/@stencil/core/-/core-1.12.4.tgz#87e1f1fd0e50f6c6821245619f475be9966fa9ca"
-  integrity sha512-hhknp1gnPYiYpZciHks6FCKgznDcbKVv+pTZN2NUtEWxUXUjTgKI60L2bKcy4uXB5ICUVtP4Pc61BtiX3hRamA==
+  version "1.12.7"
+  resolved "https://registry.yarnpkg.com/@stencil/core/-/core-1.12.7.tgz#ce2da841c824b22caa085a325724db67cc49a0cb"
+  integrity sha512-Ob+xncjuHebjSHqOGh9acXx0Jw2rSTzGP1XiYNKYQnoFtcvKpGqLhr2ibWqS1Z40aEwgI/OvYYldfWsp/C+0mw==
   dependencies:
     typescript "3.8.3"
 
@@ -15,9 +15,9 @@
   integrity sha512-5qsEyhLGTywpG4zlWv6eBhhj/z2Z37nbUGa87Ak0KqfsEiclJCYRA/AMM9FiN1jHfBvr968G4zE8rNlYmiPLsQ==
 
 "@types/jquery@*":
-  version "3.3.31"
-  resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-3.3.31.tgz#27c706e4bf488474e1cb54a71d8303f37c93451b"
-  integrity sha512-Lz4BAJihoFw5nRzKvg4nawXPzutkv7wmfQ5121avptaSIXlDNJCUuxZxX/G+9EVidZGuO0UBlk+YjKbwRKJigg==
+  version "3.3.38"
+  resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-3.3.38.tgz#6385f1e1b30bd2bff55ae8ee75ea42a999cc3608"
+  integrity sha512-nkDvmx7x/6kDM5guu/YpXkGZ/Xj/IwGiLDdKM99YA5Vag7pjGyTJ8BNUh/6hxEn/sEu5DKtyRgnONJ7EmOoKrA==
   dependencies:
     "@types/sizzle" "*"
 
