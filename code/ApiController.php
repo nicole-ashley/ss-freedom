@@ -31,7 +31,7 @@ class ApiController extends Controller implements PermissionProvider
         $this->ensureStagedMode();
         $this->ensureHttpMethod('GET');
 
-        $vars = (object)$request->getVars();
+        $vars = (object) $request->getVars();
 
         $this->ensureIdProperty($vars);
         $this->ensureClassIsDataObject($vars);
@@ -49,7 +49,7 @@ class ApiController extends Controller implements PermissionProvider
         $this->ensureStagedMode();
         $this->ensureHttpMethod('GET');
 
-        $vars = (object)$request->getVars();
+        $vars = (object) $request->getVars();
 
         $this->ensureClassProperty($vars);
         $this->ensureIdProperty($vars);
@@ -214,7 +214,10 @@ class ApiController extends Controller implements PermissionProvider
         if ($object->hasMethod('forTemplate')) {
             return $object->forTemplate();
         } elseif ($object instanceof SiteTree) {
-            return ModelAsController::controller_for($object);
+            $controller = ModelAsController::controller_for($object);
+            $response = $controller->handleRequest($this->getRequest());
+            $response->setStatusCode(200);
+            return $response;
         } else {
             $response = $this->getResponse();
             $response->addHeader('Content-Type', 'application/json');

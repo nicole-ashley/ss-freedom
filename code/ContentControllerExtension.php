@@ -29,6 +29,7 @@ class ContentControllerExtension extends Extension
                 $this->owner,
                 ['CurrentVersionedStage' => Versioned::get_stage()]
             );
+            $adminWidgetHtml = str_replace('\\', '\\\\', $adminWidgetHtml);
             Requirements::customScript(
                 "window.NikRolls = window.NikRolls || {};
                 window.NikRolls.SsFreedom = {
