@@ -4,7 +4,6 @@ namespace NikRolls\SsFreedom;
 
 use SilverStripe\Core\Config\Config as SS_Config;
 use SilverStripe\Core\Convert;
-use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBHTMLText;
@@ -16,6 +15,19 @@ use SilverStripe\Versioned\Versioned;
  */
 class TemplateAugmentor extends DataExtension
 {
+    /**
+     * Override the default field type detection for $db fields. 
+     * You can use this to specify custom TinyMCE configurations per field.
+     * 
+     * Syntax:
+     *   'FieldName' => 'field_type'
+     * 
+     * Field types can be int, float, date, datetime, time, text, html, or
+     * the key of any TinyMCE configuration you've added to
+     * NikRolls\SsFreedom\Config->tinymce.
+     */
+    private static $freedom_field_types = [];
+
     public function FreedomIsActive()
     {
         return Config::isAugmentationActive($this->owner);
@@ -95,7 +107,7 @@ class TemplateAugmentor extends DataExtension
         $data = [
             'class' => get_class($this->owner),
             'id' => $this->owner->ID,
-            'hasOptions' => $this->owner instanceof ObjectOptionsFields
+            'hasOptions' => $this->owner instanceof OptionsFields
         ];
 
         $data = $this->addPublishedDataForObjectIfAvailable($data, $this->owner);
@@ -116,8 +128,8 @@ class TemplateAugmentor extends DataExtension
 
     private function addAlertInformationForObjectIfAvailable(array $data, DataObject $object)
     {
-        if ($object instanceof ObjectAlerts) {
-            $alerts = array_filter((array)$object->getObjectAlerts());
+        if ($object instanceof Alerts) {
+            $alerts = array_filter((array) $object->getFreedomAlerts());
             if (count($alerts)) {
                 $data['alerts'] = $alerts;
             }
@@ -136,10 +148,28 @@ class TemplateAugmentor extends DataExtension
         return $this->owner->config()->get('db');
     }
 
+    private function fieldEditorTypeFor($fieldName)
+    {
+        $configurations = $this->owner->config()->get('freedom_field_types');
+        return isset($configurations[$fieldName]) ? $configurations[$fieldName] : null;
+    }
+
     private function dataForDbField($fieldName)
     {
         $data = ['name' => $fieldName];
-        $field = $this->dbFields()[$fieldName];
+        $manualType = $this->fieldEditorTypeFor($fieldName);
+        if ($manualType) {
+            $data['type'] = $manualType;
+        } else {
+            $this->augmentDataForFieldByAutoDetection($data);
+        }
+
+        return $data;
+    }
+
+    private function augmentDataForFieldByAutoDetection(&$data)
+    {
+        $field = $this->dbFields()[$data['name']];
         preg_match('`(?P<type>[^(]+)(?:\((?P<args>[^)]+)\))?`', $field, $parts);
 
         switch ($parts['type']) {
@@ -164,7 +194,7 @@ class TemplateAugmentor extends DataExtension
             case 'Varchar':
             case 'HTMLVarchar':
                 $data['type'] = 'text';
-                $data['maxLength'] = (int)explode(',', $parts['args'])[0];
+                $data['maxLength'] = (int) explode(',', $parts['args'])[0];
                 break;
             case 'Text':
                 $data['type'] = 'text';
@@ -173,13 +203,11 @@ class TemplateAugmentor extends DataExtension
                 $data['type'] = 'html';
                 break;
         }
-
-        return $data;
     }
 
     private function hasRelation($relationName)
     {
-        return (boolean)$this->owner->getRelationType($relationName);
+        return (bool) $this->owner->getRelationType($relationName);
     }
 
     private function dataForRelation($relationName)

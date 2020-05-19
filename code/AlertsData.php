@@ -2,7 +2,7 @@
 
 namespace NikRolls\SsFreedom;
 
-class ObjectAlertsData
+class AlertsData
 {
     public $error = [];
     public $warning = [];

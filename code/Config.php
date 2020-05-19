@@ -21,14 +21,16 @@ class Config
         ],
         'text' => [
             'plugins' => ['charmap', 'noneditable'],
-            'toolbar' => 'undo redo | charmap',
-            'valid_elements' => 'ss-freedom-shortcode[class|tag|title]',
+            'toolbar' => ['undo', 'redo', '|', 'charmap'],
+            'valid_elements' => ['ss-freedom-shortcode[class|tag|title]'],
             'valid_styles' => []
         ],
         'html' => [
             'plugins' => ['charmap', 'lists', 'noneditable', 'link'],
-            'toolbar' => 'undo redo | styleselect | bold italic | link unlink | numlist bullist charmap | elementoptions',
-            'valid_elements' => 'p,br,strong/b,em/i,ul,ol,li,a[href],ss-freedom-shortcode[class|tag|title]',
+            'toolbar' => ['undo', 'redo', '|', 'styleselect', '|', 'bold', 'italic', '|', 'link', 'unlink', '|', 'numlist', 'bullist', 'charmap', '|', 'elementoptions'],
+            'valid_elements' => [
+                'p', 'br', 'strong/b', 'em/i', 'ul', 'ol', 'li', 'a[href]', 'ss-freedom-shortcode[class|tag|title]'
+            ],
             'valid_styles' => []
         ]
     ];

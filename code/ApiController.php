@@ -60,7 +60,7 @@ class ApiController extends Controller implements PermissionProvider
         $object = $this->getObjectById($vars->class, $vars->id);
 
         /** @var FieldList $fields */
-        $fields = $object->getObjectOptionsFields();
+        $fields = $object->getFreedomOptionsFields();
 
         $form = Form::create(null, null, $fields);
         $form->loadDataFrom($object);
@@ -161,7 +161,7 @@ class ApiController extends Controller implements PermissionProvider
 
     private function ensureClassHasOptionsFields(object $body)
     {
-        if (!(singleton($body->class) instanceof ObjectOptionsFields)) {
+        if (!(singleton($body->class) instanceof OptionsFields)) {
             $this->httpError(422, "Data object does not have options fields: $body->class");
         }
     }
