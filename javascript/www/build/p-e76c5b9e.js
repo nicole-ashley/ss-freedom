@@ -1,1 +1,0 @@
-class t{static getElementConfiguration(t){return JSON.parse(t.dataset.ssFreedomField)}static getObjectData(t){return JSON.parse(t.dataset.ssFreedomObject)}static getObjectForFieldElement(t){return t.closest("[data-ss-freedom-object]")}static getObjectDataForFieldElement(e){const a=t.getObjectForFieldElement(e),r=this.getObjectData(a);return{class:r.class,id:r.id}}}export{t as E}

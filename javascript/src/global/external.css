@@ -1,13 +1,13 @@
-[data-ss-freedom-object] {
+[ss-freedom-object] {
   outline: dashed 1px transparent;
   transition: outline-color 300ms;
 }
 
-[data-ss-freedom-object]:hover {
+[ss-freedom-object]:hover {
   outline-color: grey;
 }
 
-[data-ss-freedom-field]:hover,
+[ss-freedom-field]:hover,
 .ss-freedom-empty {
   background-color: rgba(0, 0, 0, 0.025) !important;
 }
@@ -20,7 +20,7 @@
   display: none;
 }
 
-span[data-ss-freedom-field].ss-freedom-empty:not(.mce-edit-focus) {
+span[ss-freedom-field].ss-freedom-empty:not(.mce-edit-focus) {
   display: inline-block;
   width: 4em;
   height: 1.25em;

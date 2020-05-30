@@ -80,7 +80,7 @@ export class ObjectInstanceWrangler {
     const ancestry = [this.element];
     let closest = this.element;
     do {
-      closest = closest.parentElement.closest('[data-ss-freedom-object]');
+      closest = closest.parentElement.closest('[ss-freedom-object]');
       if (closest) {
         ancestry.unshift(closest);
       }
@@ -89,9 +89,9 @@ export class ObjectInstanceWrangler {
     document.querySelectorAll('.ss-freedom-show-hidden-empty')
       .forEach(e => e.classList.remove('ss-freedom-show-hidden-empty'));
     ancestry.forEach((element) => {
-      element.querySelectorAll('[data-ss-freedom-hidden-when-empty]')
+      element.querySelectorAll('[ss-freedom-hidden-when-empty]')
         .forEach(e => e.classList.add('ss-freedom-show-hidden-empty'));
-      element.querySelectorAll('[data-ss-freedom-object] [data-ss-freedom-object]  [data-ss-freedom-object] [data-ss-freedom-hidden-when-empty]')
+      element.querySelectorAll('[ss-freedom-object] [ss-freedom-object] [ss-freedom-object] [ss-freedom-hidden-when-empty]')
         .forEach(e => e.classList.remove('ss-freedom-show-hidden-empty'));
     });
 
@@ -100,6 +100,7 @@ export class ObjectInstanceWrangler {
     if(metadata.hasOptions) {
       this.optionsButton = document.createElement('ss-freedom-object-options-button');
       this.optionsButton['element'] = this.element;
+      this.optionsButton.setAttribute('ss-freedom-uid', metadata.uid);
       document.body.prepend(this.optionsButton);
     }
 

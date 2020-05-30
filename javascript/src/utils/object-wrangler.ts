@@ -14,19 +14,19 @@ export class ObjectWrangler {
 
   observeDom() {
     this.observer.observe(this.htmlElement, {attributes: true, childList: true, subtree: true});
-    Array.from(this.htmlElement.querySelectorAll('[data-ss-freedom-object]'))
+    Array.from(this.htmlElement.querySelectorAll('[ss-freedom-object]'))
       .forEach((element: HTMLElement) => this.wireObjectOptionsIfNecessary(element));
   }
 
   private observerCallback(changes: MutationRecord[]) {
     changes.forEach((change) => {
-      if (change.type === 'attributes' && change.attributeName === 'data-ss-freedom-object') {
+      if (change.type === 'attributes' && change.attributeName === 'ss-freedom-object') {
         this.wireObjectOptionsIfNecessary(<HTMLElement>change.target);
       } else if (change.type === 'childList') {
         Array.from(change.addedNodes).forEach((node) => {
           if (node instanceof HTMLElement) {
-            const objectNodes = Array.from(node.querySelectorAll('[data-ss-freedom-object]'));
-            if (node.dataset && node.dataset.ssFreedomObject) {
+            const objectNodes = Array.from(node.querySelectorAll('[ss-freedom-object]'));
+            if (node.hasAttribute('ss-freedom-object')) {
               objectNodes.push(node);
             }
             objectNodes.forEach(object => this.wireObjectOptionsIfNecessary(object as HTMLElement));

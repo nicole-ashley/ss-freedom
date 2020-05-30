@@ -2,6 +2,8 @@
 
 namespace NikRolls\SsFreedom;
 
+use Ramsey\Uuid\Uuid;
+use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Config\Config as SS_Config;
 use SilverStripe\Core\Convert;
 use SilverStripe\ORM\DataExtension;
@@ -33,7 +35,7 @@ class TemplateAugmentor extends DataExtension
         return Config::isAugmentationActive($this->owner);
     }
 
-    public function FreedomAttributes($for = '$self', $hiddenWhenEmpty = false)
+    public function FreedomAttributes($for = '$Me', $hiddenWhenEmpty = false)
     {
         if (!$this->FreedomIsActive()) {
             return '';
@@ -45,38 +47,24 @@ class TemplateAugmentor extends DataExtension
             return '';
         }
 
-        $jsonData = Convert::raw2att(json_encode($data['data']));
-        $output = ["data-ss-freedom-{$data['type']}=\"$jsonData\""];
+        $output = $this->prepareAttributes($data);
 
         if ($hiddenWhenEmpty) {
-            $output[] = 'data-ss-freedom-hidden-when-empty';
+            $output[] = 'ss-freedom-hidden-when-empty';
         }
 
         return $this->asHTML(implode(' ', $output));
     }
 
-    public function getFreedomAttributes($for = '$self')
+    public function getFreedomAttributes($for = '$Me')
     {
-        $attribute = null;
-
-        if ($for === '$self') {
-            $attribute = [
-                'type' => 'object',
-                'data' => $this->dataForCurrentObject()
-            ];
+        if ($for === '$Me') {
+            return $this->attributesForCurrentObject();
         } elseif ($this->hasDbField($for)) {
-            $attribute = [
-                'type' => 'field',
-                'data' => $this->dataForDbField($for)
-            ];
+            return $this->attributesForDbField($for);
         } elseif ($this->hasRelation($for)) {
-            $attribute = [
-                'type' => 'relationship',
-                'data' => $this->dataForRelation($for)
-            ];
+            return $this->attributesForRelation($for);
         }
-
-        return $attribute;
     }
 
     public function isLiveVersionRecursive()
@@ -102,18 +90,39 @@ class TemplateAugmentor extends DataExtension
         }
     }
 
-    private function dataForCurrentObject()
+    private function prepareAttributes($data)
     {
-        $data = [
+        $output = [];
+
+        foreach ($data as $key => $value) {
+            $value = is_string($value) || is_numeric($value) ? $value : json_encode($value);
+            $value = Convert::raw2att(trim($value));
+            $output[] = "ss-freedom-$key=\"$value\"";
+        }
+
+        return $output;
+    }
+
+    private function attributesForCurrentObject()
+    {
+        $attributes = [
+            'object' => $this->generateUID(),
             'class' => get_class($this->owner),
             'id' => $this->owner->ID,
-            'hasOptions' => $this->owner instanceof OptionsFields
+            'data' => ['hasOptions' => $this->owner instanceof OptionsFields]
         ];
 
-        $data = $this->addPublishedDataForObjectIfAvailable($data, $this->owner);
-        $data = $this->addAlertInformationForObjectIfAvailable($data, $this->owner);
+        $attributes['data'] = $this->addPublishedDataForObjectIfAvailable($attributes['data'], $this->owner);
+        $attributes['data'] = $this->addAlertInformationForObjectIfAvailable($attributes['data'], $this->owner);
 
-        return $data;
+        return $attributes;
+    }
+
+    private function generateUID()
+    {
+        $baseClassName = DataObject::getSchema()->baseDataClass($this->owner->ClassName);
+        $id = $this->owner->ID;
+        return hash('md5', "{$baseClassName}_{$id}");
     }
 
     private function addPublishedDataForObjectIfAvailable(array $data, DataObject $object)
@@ -148,28 +157,29 @@ class TemplateAugmentor extends DataExtension
         return $this->owner->config()->get('db');
     }
 
+    private function attributesForDbField($fieldName)
+    {
+        $attributes = ['field' => $fieldName];
+        $manualType = $this->fieldEditorTypeFor($fieldName);
+        if ($manualType) {
+            $attributes['data'] = ['type' => $manualType];
+        } else {
+            $attributes['data'] = $this->getDataForFieldByAutoDetection($fieldName);
+        }
+
+        return $attributes;
+    }
+
     private function fieldEditorTypeFor($fieldName)
     {
         $configurations = $this->owner->config()->get('freedom_field_types');
         return isset($configurations[$fieldName]) ? $configurations[$fieldName] : null;
     }
 
-    private function dataForDbField($fieldName)
+    private function getDataForFieldByAutoDetection($fieldName)
     {
-        $data = ['name' => $fieldName];
-        $manualType = $this->fieldEditorTypeFor($fieldName);
-        if ($manualType) {
-            $data['type'] = $manualType;
-        } else {
-            $this->augmentDataForFieldByAutoDetection($data);
-        }
-
-        return $data;
-    }
-
-    private function augmentDataForFieldByAutoDetection(&$data)
-    {
-        $field = $this->dbFields()[$data['name']];
+        $data = [];
+        $field = $this->dbFields()[$fieldName];
         preg_match('`(?P<type>[^(]+)(?:\((?P<args>[^)]+)\))?`', $field, $parts);
 
         switch ($parts['type']) {
@@ -203,6 +213,8 @@ class TemplateAugmentor extends DataExtension
                 $data['type'] = 'html';
                 break;
         }
+
+        return $data;
     }
 
     private function hasRelation($relationName)
@@ -210,12 +222,9 @@ class TemplateAugmentor extends DataExtension
         return (bool) $this->owner->getRelationType($relationName);
     }
 
-    private function dataForRelation($relationName)
+    private function attributesForRelation($relationName)
     {
-        $data = [
-            'name' => $relationName,
-            'type' => $this->owner->getRelationType($relationName)
-        ];
+        $data = ['type' => $this->owner->getRelationType($relationName)];
 
         if ($data['type'] === 'has_many') {
             $schema = $this->owner->getSchema();
@@ -241,7 +250,10 @@ class TemplateAugmentor extends DataExtension
             ];
         }
 
-        return $data;
+        return [
+            'relation' => $relationName,
+            'data' => $data
+        ];;
     }
 
     private function asHTML($text)

@@ -34,28 +34,30 @@ export class ApiService {
   }
 
   async updateObject(className, id, data) {
+    const currentPage = this.currentPage();
     const response = await this.fetch(this.apiUrlFor('updateObject'), {
       method: 'PATCH',
       credentials: 'include',
-      body: JSON.stringify({class: className, id, data})
+      body: JSON.stringify({ class: className, id, data, currentPage })
     });
 
     if (response.ok) {
-      return await response.text();
+      return new DOMParser().parseFromString(await response.text(), 'text/html');
     } else {
       throw response;
     }
   }
 
   async publishObject(className, id) {
+    const currentPage = this.currentPage();
     const response = await this.fetch(this.apiUrlFor('publishObject'), {
       method: 'POST',
       credentials: 'include',
-      body: JSON.stringify({class: className, id})
+      body: JSON.stringify({ class: className, id, currentPage })
     });
 
     if (response.ok) {
-      return await response.text();
+      return new DOMParser().parseFromString(await response.text(), 'text/html');
     } else {
       throw response;
     }
@@ -72,6 +74,14 @@ export class ApiService {
     } else {
       throw response;
     }
+  }
+
+  private currentPage() {
+    const adminWidget = document.querySelector('ss-freedom-admin-widget');
+    return {
+      class: adminWidget.getAttribute('page-class-name'),
+      id: adminWidget.getAttribute('page-id')
+    };
   }
 
   private apiUrlFor(endpoint) {

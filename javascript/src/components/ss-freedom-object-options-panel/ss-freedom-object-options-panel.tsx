@@ -1,8 +1,9 @@
-import {Component, Element, h, Host, Prop, State} from '@stencil/core';
-import {ApiService} from '../../utils/api-service';
-import {ElementMetadata} from '../../utils/element-metadata';
-import {ElementFollower} from '../../utils/element-follower';
-import {SsFreedomAdminWidget} from "../ss-freedom-admin-widget/ss-freedom-admin-widget";
+import { Component, Element, h, Host, Prop, State } from '@stencil/core';
+import { ApiService } from '../../utils/api-service';
+import { ElementMetadata } from '../../utils/element-metadata';
+import { ElementFollower } from '../../utils/element-follower';
+import { SsFreedomAdminWidget } from '../ss-freedom-admin-widget/ss-freedom-admin-widget';
+import { ElementReplacement } from '../../utils/element-replacement';
 
 @Component({
   tag: 'ss-freedom-object-options-panel',
@@ -16,7 +17,7 @@ export class SsFreedomObjectOptionsPanel {
   @State() private loading = true;
   @State() private formHtml: string;
   private elementFollower: ElementFollower;
-  private metadata: { class: string; id: number };
+  private metadata: { uid: string, class: string; id: number };
   private api: ApiService;
   private formWrapper: HTMLElement;
 
@@ -36,12 +37,10 @@ export class SsFreedomObjectOptionsPanel {
 
   startHorizontalDrag() {
     const handler = this.handleHorizontalDrag.bind(this);
-    document.body.addEventListener('pointermove', handler)
-    document.body.addEventListener(
-      'pointerup',
-      () => document.body.removeEventListener('pointermove', handler),
-      {once: true}
-    );
+    document.body.addEventListener('pointermove', handler);
+    document.body.addEventListener('pointerup', () => document.body.removeEventListener('pointermove', handler), {
+      once: true
+    });
   }
 
   handleHorizontalDrag(event: PointerEvent) {
@@ -71,27 +70,22 @@ export class SsFreedomObjectOptionsPanel {
       }
       return data;
     }, {});
-    const newHtml = await this.api.updateObject(this.metadata.class, this.metadata.id, formData);
-    this.updateObjectHtml(newHtml);
+    const newDocument = await this.api.updateObject(this.metadata.class, this.metadata.id, formData);
+    this.updateObjectHtml(newDocument);
     this.close();
     SsFreedomAdminWidget.RefreshPublishedStatus();
   }
 
-  private updateObjectHtml(newHtml: string) {
-    const criteria = [
-      `[data-ss-freedom-object*='"class":"${this.metadata.class.replace(/\\/g, '\\\\\\\\')}"']`,
-      `[data-ss-freedom-object*='"id":${this.metadata.id}']`
-    ];
-    Array.from(document.querySelectorAll(criteria.join(''))).forEach(el => el.outerHTML = newHtml);
+  private updateObjectHtml(newDocument: Document) {
+    Array.from(document.querySelectorAll(`[ss-freedom-object="${this.metadata.uid}"]`)).forEach((el) =>
+      ElementReplacement.replaceObjectWithMostLikelyEquivalent(el as HTMLElement, newDocument)
+    );
     this.removeOptionsButtonForOldObject();
   }
 
   private removeOptionsButtonForOldObject() {
-    const criteria = [
-      `ss-freedom-object-options-button[object-class="${this.metadata.class.replace(/\\/g, '\\\\')}"]`,
-      `[object-id="${this.metadata.id}"]`
-    ];
-    Array.from(document.querySelectorAll(criteria.join(''))).forEach(el => el.remove());
+    const selector = `ss-freedom-object-options-button[ss-freedom-uid="${this.metadata.uid}"]`;
+    Array.from(document.querySelectorAll(selector)).forEach((el) => el.remove());
   }
 
   private close() {
@@ -100,12 +94,14 @@ export class SsFreedomObjectOptionsPanel {
 
   render() {
     if (this.loading) {
-      return <ion-icon name="sync"/>;
+      return <ion-icon name="sync" />;
     } else {
       return (
         <Host class="loaded">
-          <div ref={el => this.formWrapper = el} innerHTML={this.formHtml}></div>
-          <button type="submit" onClick={() => this.saveChanges()}>Save</button>
+          <div ref={(el) => (this.formWrapper = el)} innerHTML={this.formHtml}></div>
+          <button type="submit" onClick={() => this.saveChanges()}>
+            Save
+          </button>
           <button onClick={() => this.close()}>Cancel</button>
           <div class="horizontal-resize" onPointerDown={() => this.startHorizontalDrag()}></div>
         </Host>

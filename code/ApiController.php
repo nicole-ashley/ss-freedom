@@ -85,7 +85,11 @@ class ApiController extends Controller implements PermissionProvider
 
         $this->updateObjectWithData($object, $body->data);
 
-        return $this->renderObject($this->getObjectById($object->ClassName, $object->ID));
+        if (isset($body->currentPage)) {
+            return $this->renderObject($this->getObjectById($body->currentPage->class, $body->currentPage->id));
+        } else {
+            return $this->renderObject($this->getObjectById($object->ClassName, $object->ID));
+        }
     }
 
     public function publishObject(HTTPRequest $request)
@@ -103,7 +107,11 @@ class ApiController extends Controller implements PermissionProvider
 
         $object->publishRecursive();
 
-        return $this->renderObject($this->getObjectById($object->ClassName, $object->ID));
+        if (isset($body->currentPage)) {
+            return $this->renderObject($this->getObjectById($body->currentPage->class, $body->currentPage->id));
+        } else {
+            return $this->renderObject($this->getObjectById($object->ClassName, $object->ID));
+        }
     }
 
     public function getLinkList(HTTPRequest $request)
