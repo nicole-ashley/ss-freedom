@@ -1,4 +1,4 @@
-import {ElementMetadata} from './element-metadata';
+import { ElementMetadata } from './element-metadata';
 
 export class ObjectInstanceWrangler {
   private element: HTMLElement;
@@ -26,13 +26,15 @@ export class ObjectInstanceWrangler {
     this.removeHoverState();
   }
 
-  private elementOverHandler() {
+  private elementOverHandler(e: MouseEvent) {
+    e.stopPropagation();
     this.elementHovered = true;
     this.popupHovered = false;
     this.handleUpdate();
   }
 
-  private elementLeaveHandler() {
+  private elementLeaveHandler(e: MouseEvent) {
+    e.stopPropagation();
     this.elementHovered = false;
     this.handleUpdate();
   }
@@ -91,13 +93,13 @@ export class ObjectInstanceWrangler {
     ancestry.forEach((element) => {
       element.querySelectorAll('[ss-freedom-hidden-when-empty]')
         .forEach(e => e.classList.add('ss-freedom-show-hidden-empty'));
-      element.querySelectorAll('[ss-freedom-object] [ss-freedom-object] [ss-freedom-object] [ss-freedom-hidden-when-empty]')
+      element.querySelectorAll(':scope [ss-freedom-object] [ss-freedom-hidden-when-empty]')
         .forEach(e => e.classList.remove('ss-freedom-show-hidden-empty'));
     });
 
     const metadata = ElementMetadata.getObjectData(this.element);
 
-    if(metadata.hasOptions) {
+    if (metadata.hasOptions) {
       this.optionsButton = document.createElement('ss-freedom-object-options-button');
       this.optionsButton['element'] = this.element;
       this.optionsButton.setAttribute('ss-freedom-uid', metadata.uid);

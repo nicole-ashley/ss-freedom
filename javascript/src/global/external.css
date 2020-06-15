@@ -16,7 +16,7 @@
   background-color: rgba(0, 0, 0, 0.05) !important;
 }
 
-.ss-freedom-empty:not(.ss-freedom-show-hidden-empty) {
+.ss-freedom-empty[ss-freedom-hidden-when-empty]:not(.ss-freedom-show-hidden-empty) {
   display: none;
 }
 
