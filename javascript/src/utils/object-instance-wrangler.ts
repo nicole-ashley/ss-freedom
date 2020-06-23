@@ -93,7 +93,7 @@ export class ObjectInstanceWrangler {
     ancestry.forEach((element) => {
       element.querySelectorAll('[ss-freedom-hidden-when-empty]')
         .forEach(e => e.classList.add('ss-freedom-show-hidden-empty'));
-      element.querySelectorAll(':scope [ss-freedom-object] [ss-freedom-hidden-when-empty]')
+      element.querySelectorAll(':scope [ss-freedom-object] [ss-freedom-object] [ss-freedom-hidden-when-empty]')
         .forEach(e => e.classList.remove('ss-freedom-show-hidden-empty'));
     });
 
