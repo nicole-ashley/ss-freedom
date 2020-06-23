@@ -9,6 +9,7 @@ declare global {
   interface Window {
     tinymce: {
       editors: tinymce.Editor[];
+      activeEditor: tinymce.Editor;
     };
   }
 }

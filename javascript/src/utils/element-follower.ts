@@ -11,10 +11,11 @@ export class ElementFollower {
   }
 
   public startFollowing() {
-    this.interval = window.setInterval(() => this.updateScreenPosition(), 10);
     this.follower.style.position = 'absolute';
     this.follower.style.top = 'calc(var(--target-top) + var(--scroll-y) - 1px + var(--offset-top))';
     this.follower.style.right = 'calc((var(--document-width) - var(--target-right)) + var(--scroll-x) - 1px + var(--offset-right))';
+    this.interval = window.setInterval(() => this.updateScreenPosition(), 10);
+    this.updateScreenPosition();
   }
 
   public stopFollowing() {

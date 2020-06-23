@@ -4,81 +4,102 @@ export class ObjectInstanceWrangler {
   private element: HTMLElement;
   private optionsButton: HTMLElement;
   private alertButton: HTMLElement;
-  private elementHovered = false;
-  private popupHovered = false;
+  private hoverState = false;
 
   constructor(element: HTMLElement) {
     this.element = element;
-    this.elementOverHandler = this.elementOverHandler.bind(this);
-    this.elementLeaveHandler = this.elementLeaveHandler.bind(this);
-    this.popupOverHandler = this.popupOverHandler.bind(this);
-    this.popupLeaveHandler = this.popupLeaveHandler.bind(this);
-    this.handleUpdate = this.debounce(this.handleUpdate.bind(this), 0);
+    this.handleUpdate = this.handleUpdate.bind(this);
     this.setup();
   }
 
   public setup() {
-    this.element.addEventListener('mouseover', this.elementOverHandler);
+    this.element.addEventListener('mouseover', this.handleUpdate);
+    this.handleUpdate();
   }
 
   public destroy() {
-    this.element.removeEventListener('mouseover', this.elementOverHandler);
+    this.element.removeEventListener('mouseover', this.handleUpdate);
     this.removeHoverState();
   }
 
-  private elementOverHandler(e: MouseEvent) {
-    e.stopPropagation();
-    this.elementHovered = true;
-    this.popupHovered = false;
-    this.handleUpdate();
+  private handleUpdate(e: MouseEvent = null) {
+    if (e) {
+      e.stopPropagation();
+    }
+
+    const metadata = ElementMetadata.getObjectData(this.element);
+    const monitoredElements: Element[] = [
+      this.element,
+      this.optionsButton,
+      this.alertButton,
+      ...Array.from(
+        document.querySelectorAll(`ss-freedom-object-options-panel[ss-freedom-uid="${metadata.uid}"]`)
+      )
+    ];
+
+    const activeEditor = window.tinymce.activeEditor;
+    const activeField = activeEditor && activeEditor.getBody();
+    if (activeField && activeField.closest(`[ss-freedom-object="${metadata.uid}"]`) === this.element) {
+      monitoredElements.push(activeEditor.getContainer());
+    }
+
+    const hoveredElements = monitoredElements.filter(element => element && element.matches(':hover'));
+    hoveredElements.forEach((element) => {
+      element.removeEventListener('mouseleave', this.handleUpdate);
+      element.addEventListener('mouseleave', this.handleUpdate, { once: true })
+    });
+    
+    const newHoverState = hoveredElements.length > 0;
+    if (newHoverState) {
+      this.ensureButtonsPresent();
+      if (newHoverState != this.hoverState) {
+        this.showEmptyFields();
+      }
+    } else {
+      this.ensureButtonsNotPresent();
+      if (newHoverState != this.hoverState) {
+        this.removeHoverState();
+      }
+    }
+    this.hoverState = newHoverState;
   }
 
-  private elementLeaveHandler(e: MouseEvent) {
-    e.stopPropagation();
-    this.elementHovered = false;
-    this.handleUpdate();
+  private ensureButtonsPresent() {
+    const metadata = ElementMetadata.getObjectData(this.element);
+
+    if (document.querySelector(`ss-freedom-object-options-panel[ss-freedom-uid="${metadata.uid}"]`)) {
+      return;
+    }
+    
+    if (metadata.hasOptions && !(this.optionsButton && this.optionsButton.parentElement)) {
+      this.optionsButton = document.createElement('ss-freedom-object-options-button');
+      this.optionsButton['element'] = this.element;
+      this.optionsButton.setAttribute('ss-freedom-uid', metadata.uid);
+      document.body.prepend(this.optionsButton);
+    }
+
+    if (metadata.alerts && !(this.alertButton && this.alertButton.parentElement)) {
+      this.alertButton = document.createElement('ss-freedom-object-alert-button');
+      this.alertButton['element'] = this.element;
+      this.alertButton.setAttribute('ss-freedom-uid', metadata.uid);
+      document.body.prepend(this.alertButton);
+    }
   }
 
-  private popupOverHandler() {
-    this.popupHovered = true;
-    this.handleUpdate();
-  }
+  private ensureButtonsNotPresent() {
+    const metadata = ElementMetadata.getObjectData(this.element);
 
-  private popupLeaveHandler() {
-    this.popupHovered = false;
-    this.handleUpdate();
-  }
-
-  private handleUpdate() {
-    const hoveredPopup = document.querySelector([
-      'ss-freedom-object-options-button:hover',
-      'ss-freedom-object-options-panel:hover',
-      'ss-freedom-object-alert-button:hover',
-      '.tox:hover'
+    const buttons = document.querySelectorAll([
+      `ss-freedom-object-options-button[ss-freedom-uid="${metadata.uid}"]`,
+      `ss-freedom-object-alert-button[ss-freedom-uid="${metadata.uid}"]`
     ].join(','));
-    if (hoveredPopup) {
-      this.popupHovered = true;
-      hoveredPopup.addEventListener('mouseleave', this.popupLeaveHandler);
-    }
+    buttons.forEach(element => element.remove());
 
-    if ((this.elementHovered || this.popupHovered) && !this.optionsButton && !this.alertButton) {
-      this.activateHoverState();
-    } else if (!(this.elementHovered || this.popupHovered) && (this.optionsButton || this.alertButton)) {
-      this.removeHoverState();
-    }
+    this.optionsButton = null;
+    this.alertButton = null;
   }
 
-  private debounce(method, delay) {
-    let timeout;
-    return () => {
-      window.clearTimeout(timeout);
-      timeout = window.setTimeout(method, delay);
-    };
-  }
-
-  private activateHoverState() {
-    this.element.addEventListener('mouseleave', this.elementLeaveHandler);
-
+  private showEmptyFields() {
     const ancestry = [this.element];
     let closest = this.element;
     do {
@@ -87,7 +108,7 @@ export class ObjectInstanceWrangler {
         ancestry.unshift(closest);
       }
     } while (closest);
-
+    
     document.querySelectorAll('.ss-freedom-show-hidden-empty')
       .forEach(e => e.classList.remove('ss-freedom-show-hidden-empty'));
     ancestry.forEach((element) => {
@@ -96,36 +117,19 @@ export class ObjectInstanceWrangler {
       element.querySelectorAll(':scope [ss-freedom-object] [ss-freedom-object] [ss-freedom-hidden-when-empty]')
         .forEach(e => e.classList.remove('ss-freedom-show-hidden-empty'));
     });
-
-    const metadata = ElementMetadata.getObjectData(this.element);
-
-    if (metadata.hasOptions) {
-      this.optionsButton = document.createElement('ss-freedom-object-options-button');
-      this.optionsButton['element'] = this.element;
-      this.optionsButton.setAttribute('ss-freedom-uid', metadata.uid);
-      document.body.prepend(this.optionsButton);
-    }
-
-    if (metadata.alerts) {
-      this.alertButton = document.createElement('ss-freedom-object-alert-button');
-      this.alertButton['element'] = this.element;
-      document.body.prepend(this.alertButton);
-    }
   }
 
   private removeHoverState() {
-    this.element.removeEventListener('mouseleave', this.elementLeaveHandler);
+    this.element.removeEventListener('mouseleave', this.handleUpdate);
 
     if (this.optionsButton) {
-      this.optionsButton.removeEventListener('mouseover', this.popupOverHandler);
-      this.optionsButton.removeEventListener('mouseleave', this.popupLeaveHandler);
+      this.optionsButton.removeEventListener('mouseleave', this.handleUpdate);
       this.optionsButton.remove();
       delete this.optionsButton;
     }
 
     if (this.alertButton) {
-      this.alertButton.removeEventListener('mouseover', this.popupOverHandler);
-      this.alertButton.removeEventListener('mouseleave', this.popupLeaveHandler);
+      this.alertButton.removeEventListener('mouseleave', this.handleUpdate);
       this.alertButton.remove();
       delete this.alertButton;
     }

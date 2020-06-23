@@ -19,13 +19,16 @@ export class SsFreedomObjectOptionsButton {
   }
 
   componentDidUnload() {
-    this.elementFollower.stopFollowing();
+    if (this.elementFollower) {
+      this.elementFollower.stopFollowing();
+    }
   }
 
   openOptionsWidget() {
     if (!this.optionsWidget) {
       this.optionsWidget = document.createElement('ss-freedom-object-options-panel');
       this.optionsWidget['element'] = this.element;
+      this.optionsWidget.setAttribute('ss-freedom-uid', this.host.getAttribute('ss-freedom-uid'));
       this.optionsWidget.style.position = 'absolute';
       this.optionsWidget.style.top = this.host.style.top;
       this.optionsWidget.style.right = this.host.style.right;

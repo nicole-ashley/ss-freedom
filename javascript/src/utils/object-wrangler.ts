@@ -32,6 +32,15 @@ export class ObjectWrangler {
             objectNodes.forEach(object => this.wireObjectOptionsIfNecessary(object as HTMLElement));
           }
         });
+        Array.from(change.removedNodes).forEach((node) => {
+          if (node instanceof HTMLElement) {
+            const objectNodes = Array.from(node.querySelectorAll('[ss-freedom-object]'));
+            if (node.hasAttribute('ss-freedom-object')) {
+              objectNodes.push(node);
+            }
+            objectNodes.forEach(object => this.unwireObjectOptionsIfPresent(object as HTMLElement));
+          }
+        });
       }
     });
   }
@@ -39,7 +48,11 @@ export class ObjectWrangler {
   private wireObjectOptionsIfNecessary(element: HTMLElement) {
     if (!element['ssFreedomObjectInstanceWrangler']) {
       element['ssFreedomObjectInstanceWrangler'] = new ObjectInstanceWrangler(element);
-    } else {
+    } 
+  }
+
+  private unwireObjectOptionsIfPresent(element: HTMLElement) {
+    if (element['ssFreedomObjectInstanceWrangler']) {
       element['ssFreedomObjectInstanceWrangler'].destroy();
       delete element['ssFreedomObjectInstanceWrangler'];
     }
