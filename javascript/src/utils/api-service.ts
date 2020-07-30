@@ -77,7 +77,7 @@ export class ApiService {
   }
 
   private currentPage() {
-    const adminWidget = document.querySelector('ss-freedom-admin-widget');
+    const adminWidget = this.getAdminWidget();
     return {
       class: adminWidget.getAttribute('page-class-name'),
       id: adminWidget.getAttribute('page-id')
@@ -85,6 +85,12 @@ export class ApiService {
   }
 
   private apiUrlFor(endpoint) {
-    return `${API_BASE}/${endpoint}`;
+    const cmsEditLink = this.getAdminWidget().getAttribute('cms-edit-link');
+    const serverBase = cmsEditLink.replace(/(?<=\.[^\/]+)\/admin\/pages\/.*$/i, '');
+    return `${serverBase}/${API_BASE}/${endpoint}`;
+  }
+
+  private getAdminWidget(): HTMLElement {
+    return document.querySelector('ss-freedom-admin-widget');
   }
 }
