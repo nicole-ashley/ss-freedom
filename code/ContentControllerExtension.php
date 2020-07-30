@@ -30,13 +30,15 @@ class ContentControllerExtension extends Extension
                 ['CurrentVersionedStage' => Versioned::get_stage()]
             );
             $adminWidgetHtml = str_replace('\\', '\\\\', $adminWidgetHtml);
-            Requirements::customScript(
-                "window.NikRolls = window.NikRolls || {};
+            Requirements::customScript(<<<JS
+                window.NikRolls = window.NikRolls || {};
                 window.NikRolls.SsFreedom = {
                   configurations: {$tinyMceConfigJson}
                 };
-                document.body.innerHTML += `{$adminWidgetHtml}`;"
-            );
+                const div = document.createElement('div');
+                div.innerHTML += `{$adminWidgetHtml}`;
+                document.body.appendChild(div);
+            JS);
         }
     }
 
