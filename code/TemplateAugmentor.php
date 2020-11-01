@@ -77,7 +77,7 @@ class TemplateAugmentor extends DataExtension
                 $owned = $this->owner->findOwned();
 
                 foreach ($owned as $item) {
-                    if (!$item->isLiveVersion()) {
+                    if ($item->hasMethod('isLiveVersion') && !$item->isLiveVersion()) {
                         $ownedNotLive = $item;
                         break;
                     }
