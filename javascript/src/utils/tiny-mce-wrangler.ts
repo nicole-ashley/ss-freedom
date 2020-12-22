@@ -138,8 +138,8 @@ export class TinyMceWrangler {
     setups.push((editor: tinymce.Editor) => {
       editor.on('PostProcess', function (e) {
         e.content = e.content.replace(
-          /<ss-freedom-shortcode[^>]*?tag='([^']*?)'[^>]*?>.*?<\/ss-freedom-shortcode>/g,
-          (_, capture) => he.decode(capture)
+          /<ss-freedom-shortcode[^>]*?tag=(["'])(.*?)\1[^>]*?>.*?<\/ss-freedom-shortcode>/g,
+          (_all, _quote, tag) => he.decode(tag)
         );
       });
     });
