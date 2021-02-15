@@ -18,12 +18,12 @@ use SilverStripe\Versioned\Versioned;
 class TemplateAugmentor extends DataExtension
 {
     /**
-     * Override the default field type detection for $db fields. 
+     * Override the default field type detection for $db fields.
      * You can use this to specify custom TinyMCE configurations per field.
-     * 
+     *
      * Syntax:
      *   'FieldName' => 'field_type'
-     * 
+     *
      * Field types can be int, float, date, datetime, time, text, html, or
      * the key of any TinyMCE configuration you've added to
      * NikRolls\SsFreedom\Config->tinymce.

@@ -2,6 +2,8 @@
 
 namespace NikRolls\SsFreedom;
 
+use Exception;
+use InvalidArgumentException;
 use SilverStripe\CMS\Controllers\ModelAsController;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Controller;
@@ -206,12 +208,26 @@ class ApiController extends Controller implements PermissionProvider
         }
 
         if ($object->hasExtension(Versioned::class)) {
+            $this->writeOrUpdateCurrentVersionIfSameAuthor($object);
+        } else {
+            $object->write();
+        }
+    }
+
+    private function writeOrUpdateCurrentVersionIfSameAuthor(DataObject $object)
+    {
+        try {
             $version = Versioned::get_version($object->ClassName, $object->ID, $object->Version);
-            if (!$version->WasPublished && $version->Author()->ID == Security::getCurrentUser()->ID) {
-                $object->writeWithoutVersion();
-            } else {
-                $object->write();
-            }
+        } catch (InvalidArgumentException $_) {
+            $version = null;
+        }
+
+        if (
+            $version &&
+            !$version->WasPublished &&
+            $version->Author()->ID == Security::getCurrentUser()->ID
+        ) {
+            $object->writeWithoutVersion();
         } else {
             $object->write();
         }
