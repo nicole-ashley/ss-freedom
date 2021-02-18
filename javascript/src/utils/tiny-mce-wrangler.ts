@@ -14,6 +14,14 @@ declare global {
   }
 }
 
+interface CssColour {
+  fn: string;
+  c1: string | number;
+  c2: string | number;
+  c3: string | number;
+  a: number;
+}
+
 export class TinyMceWrangler {
   private tinyMce: Promise<any>;
   private observer: MutationObserver;
@@ -42,14 +50,14 @@ export class TinyMceWrangler {
       subtree: true
     });
     Array.from(this.htmlElement.querySelectorAll('[ss-freedom-field]')).forEach((element: HTMLElement) =>
-      this.initialiseEditorIfNecessary(element)
+      this.observeElementIfField(element)
     );
   }
 
   private observerCallback(changes: MutationRecord[]) {
     changes.forEach(async (change) => {
       if (change.type === 'attributes' && change.attributeName === 'ss-freedom-field') {
-        this.initialiseEditorIfNecessary(<HTMLElement>change.target);
+        this.observeElementIfField(<HTMLElement>change.target);
       } else if (change.type === 'childList') {
         Array.from(change.addedNodes).forEach((node) => {
           if (node instanceof HTMLElement) {
@@ -57,7 +65,7 @@ export class TinyMceWrangler {
             if (node.hasAttribute('ss-freedom-field')) {
               fieldNodes.push(node);
             }
-            fieldNodes.forEach((object) => this.initialiseEditorIfNecessary(object as HTMLElement));
+            fieldNodes.forEach((object) => this.observeElementIfField(object as HTMLElement));
           }
         });
       }
@@ -69,17 +77,64 @@ export class TinyMceWrangler {
     });
   }
 
-  async initialiseEditorIfNecessary(element: HTMLElement) {
+  async observeElementIfField(element: HTMLElement) {
     if (element.hasAttribute('ss-freedom-field')) {
-      const existingEditor = (await this.tinyMce).editors.find((e: tinymce.Editor) => e.getBody() === element);
-      if (!existingEditor) {
-        const metadata = ElementMetadata.getElementConfiguration(element);
-        const configurations = TinyMceWrangler.getTinyMceConfigurations();
-        if (configurations[metadata.type]) {
-          await this.initialiseTinyMceConfiguration(metadata.type, element);
-        }
+      this.initialiseEditorIfNecessary(element);
+      TinyMceWrangler.handleBackgroundColours(element);
+    }
+  }
+
+  async initialiseEditorIfNecessary(element: HTMLElement) {
+    const existingEditor = (await this.tinyMce).editors.find((e: tinymce.Editor) => e.getBody() === element);
+    if (!existingEditor) {
+      const metadata = ElementMetadata.getElementConfiguration(element);
+      const configurations = TinyMceWrangler.getTinyMceConfigurations();
+      if (configurations[metadata.type]) {
+        await this.initialiseTinyMceConfiguration(metadata.type, element);
       }
     }
+  }
+
+  static handleBackgroundColours(element: HTMLElement) {
+    TinyMceWrangler.applyNonHoverBackgroundColour(element);
+    element.addEventListener('pointerover', () => TinyMceWrangler.applyHoverBackgroundColour(element));
+    element.addEventListener('pointerout', () => TinyMceWrangler.applyNonHoverBackgroundColour(element));
+  }
+
+  static applyNonHoverBackgroundColour(element: HTMLElement) {
+    if (!element.classList.contains('ss-freedom-empty')) {
+      TinyMceWrangler.applyBackgroundColour(element, 0.0);
+    } else {
+      TinyMceWrangler.applyBackgroundColour(element, 0.1);
+    }
+  }
+
+  static applyHoverBackgroundColour(element: HTMLElement) {
+    if (!element.classList.contains('ss-freedom-empty')) {
+      TinyMceWrangler.applyBackgroundColour(element, 0.1);
+    } else {
+      TinyMceWrangler.applyBackgroundColour(element, 0.2);
+    }
+  }
+
+  static applyBackgroundColour(element: HTMLElement, alpha: number) {
+    const colour = TinyMceWrangler.getForegroundColour(element);
+    colour.a *= alpha;
+    element.style.backgroundColor = TinyMceWrangler.toCssColor(colour);
+  }
+
+  static getForegroundColour(element: HTMLElement): CssColour {
+    const [fn, c1, c2, c3, a = '1'] = window.getComputedStyle(element)['color']
+      .match(/([b-z]+|\d+(?:\.\d+)?%?)/g);
+    if (a.substr(-1) == '%') {
+      return { fn, c1, c2, c3, a: .01 * parseInt(a, 10) };
+    } else {
+      return { fn, c1, c2, c3, a: parseInt(a, 10) };
+    }
+  }
+
+  static toCssColor({fn, c1, c2, c3, a}: CssColour) {
+    return `${fn}a(${c1}, ${c2}, ${c3}, ${a})`;
   }
 
   private async initialiseTinyMceConfiguration(name, element) {
@@ -283,6 +338,7 @@ export class TinyMceWrangler {
     } else {
       element.classList.add('ss-freedom-empty');
     }
+    TinyMceWrangler.applyNonHoverBackgroundColour(element);
   }
 
   private async updateCmsWithLatestData(editor: tinymce.Editor) {
