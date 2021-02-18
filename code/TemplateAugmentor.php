@@ -2,13 +2,14 @@
 
 namespace NikRolls\SsFreedom;
 
-use Ramsey\Uuid\Uuid;
-use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Config\Config as SS_Config;
 use SilverStripe\Core\Convert;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBHTMLText;
+use SilverStripe\ORM\HasManyList;
+use SilverStripe\ORM\ManyManyList;
 use SilverStripe\Versioned\RecursivePublishable;
 use SilverStripe\Versioned\Versioned;
 
@@ -109,11 +110,14 @@ class TemplateAugmentor extends DataExtension
             'object' => $this->generateUID(),
             'class' => get_class($this->owner),
             'id' => $this->owner->ID,
-            'data' => ['hasOptions' => $this->owner instanceof OptionsFields]
+            'data' => [
+                'hasOptions' => $this->owner instanceof OptionsFields
+            ]
         ];
 
         $attributes['data'] = $this->addPublishedDataForObjectIfAvailable($attributes['data'], $this->owner);
         $attributes['data'] = $this->addAlertInformationForObjectIfAvailable($attributes['data'], $this->owner);
+        $attributes['data'] = $this->addDeleteInformationForObjectIfAvailable($attributes['data'], $this->owner);
 
         return $attributes;
     }
@@ -147,6 +151,23 @@ class TemplateAugmentor extends DataExtension
         return $data;
     }
 
+    private function addDeleteInformationForObjectIfAvailable(array $data, DataObject $object)
+    {
+        $data['canDelete'] = $this->owner->canDelete();
+        if ($this->owner->hasMethod('canUnpublish')) {
+            $data['canDelete'] = $data['canDelete'] && $this->owner->canUnpublish();
+        }
+
+        if ($this->owner instanceof ConditionalDeleteMethod) {
+            $deleteMethod = $this->owner->deleteMethod();
+            if (array_search($deleteMethod, ['delete', 'unlink']) !== false) {
+                $data['deleteMethod'] = $deleteMethod;
+            }
+        }
+
+        return $data;
+    }
+
     private function hasDbField($fieldName)
     {
         return isset($this->dbFields()[$fieldName]);
@@ -159,6 +180,10 @@ class TemplateAugmentor extends DataExtension
 
     private function attributesForDbField($fieldName)
     {
+        if (!$this->owner->canEdit()) {
+            return [];
+        }
+
         $attributes = ['field' => $fieldName];
         $manualType = $this->fieldEditorTypeFor($fieldName);
         if ($manualType) {
@@ -224,36 +249,30 @@ class TemplateAugmentor extends DataExtension
 
     private function attributesForRelation($relationName)
     {
-        $data = ['type' => $this->owner->getRelationType($relationName)];
+        $relation = $this->owner->{$relationName}();
+        $relationDataClass = $this->owner->{$relationName}()->dataClass();
+        $relationObject = Injector::inst()->get($relationDataClass);
 
-        if ($data['type'] === 'has_many') {
-            $schema = $this->owner->getSchema();
-            $hasManyComponent = $schema->hasManyComponent($this->owner->getClassName(), $relationName, true);
-            $data['sort'] = SS_Config::inst()->get($hasManyComponent, 'default_sort');
-        } elseif ($data['type'] === 'many_many') {
-            $schema = $this->owner->getSchema();
-            $manyManyComponent = $schema->manyManyComponent($this->owner->getClassName(), $relationName);
-            $data['sort'] = SS_Config::inst()->get($manyManyComponent['join'], 'default_sort');
-            $data['sort'] = preg_replace('`^"' . $manyManyComponent['join'] . '"\.`i', '', $data['sort']);
+        if ($relation instanceof HasManyList) {
+            $sortable = (bool)SS_Config::inst()->get($relationDataClass, 'default_sort');
+            $removeMethod = 'delete';
+        } else if ($relation instanceof ManyManyList) {
+            $sortable = (bool)SS_Config::inst()->get($relation->getJoinTable(), 'default_sort');
+            $removeMethod = 'unlink';
+        } else {
+            $sortable = false;
         }
 
-        if (isset($data['sort'])) {
-            preg_match(
-                '`"?(?<field>[^"]+)"?(?:\s+(?<direction>ASC|DESC))?`i',
-                $data['sort'],
-                $sortParts
-            );
-            $sortParts['direction'] = isset($sortParts['direction']) ? $sortParts['direction'] : 'ASC';
-            $data['sort'] = [
-                'field' => $sortParts['field'],
-                'direction' => strtolower($sortParts['direction']) === 'desc' ? 'descending' : 'ascending'
-            ];
-        }
+        $data = [
+            'canAdd' => $relationObject->canCreate(),
+            'canSort' => $sortable,
+            'removeMethod' => $removeMethod
+        ];
 
         return [
             'relation' => $relationName,
             'data' => $data
-        ];;
+        ];
     }
 
     private function asHTML($text)

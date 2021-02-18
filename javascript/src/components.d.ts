@@ -5,7 +5,14 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
+import { Offset } from "./utils/element-follower";
 export namespace Components {
+    interface SsFreedomAddSiblingButton {
+        "adjacentSibling": HTMLElement;
+        "element": HTMLElement;
+        "offset": Offset;
+        "processing": boolean;
+    }
     interface SsFreedomAdminWidget {
         "canPublish": boolean;
         "cmsEditLink": string;
@@ -13,10 +20,14 @@ export namespace Components {
         "pageClassName": string;
         "pageId": number;
         "refreshPublishedStatus": () => Promise<void>;
-        "stage": "Stage" | "Live";
+        "stage": 'Stage' | 'Live';
     }
     interface SsFreedomObjectAlertButton {
         "element": HTMLElement;
+    }
+    interface SsFreedomObjectDeleteButton {
+        "element": HTMLElement;
+        "processing": boolean;
     }
     interface SsFreedomObjectOptionsButton {
         "element": HTMLElement;
@@ -26,6 +37,12 @@ export namespace Components {
     }
 }
 declare global {
+    interface HTMLSsFreedomAddSiblingButtonElement extends Components.SsFreedomAddSiblingButton, HTMLStencilElement {
+    }
+    var HTMLSsFreedomAddSiblingButtonElement: {
+        prototype: HTMLSsFreedomAddSiblingButtonElement;
+        new (): HTMLSsFreedomAddSiblingButtonElement;
+    };
     interface HTMLSsFreedomAdminWidgetElement extends Components.SsFreedomAdminWidget, HTMLStencilElement {
     }
     var HTMLSsFreedomAdminWidgetElement: {
@@ -37,6 +54,12 @@ declare global {
     var HTMLSsFreedomObjectAlertButtonElement: {
         prototype: HTMLSsFreedomObjectAlertButtonElement;
         new (): HTMLSsFreedomObjectAlertButtonElement;
+    };
+    interface HTMLSsFreedomObjectDeleteButtonElement extends Components.SsFreedomObjectDeleteButton, HTMLStencilElement {
+    }
+    var HTMLSsFreedomObjectDeleteButtonElement: {
+        prototype: HTMLSsFreedomObjectDeleteButtonElement;
+        new (): HTMLSsFreedomObjectDeleteButtonElement;
     };
     interface HTMLSsFreedomObjectOptionsButtonElement extends Components.SsFreedomObjectOptionsButton, HTMLStencilElement {
     }
@@ -51,23 +74,35 @@ declare global {
         new (): HTMLSsFreedomObjectOptionsPanelElement;
     };
     interface HTMLElementTagNameMap {
+        "ss-freedom-add-sibling-button": HTMLSsFreedomAddSiblingButtonElement;
         "ss-freedom-admin-widget": HTMLSsFreedomAdminWidgetElement;
         "ss-freedom-object-alert-button": HTMLSsFreedomObjectAlertButtonElement;
+        "ss-freedom-object-delete-button": HTMLSsFreedomObjectDeleteButtonElement;
         "ss-freedom-object-options-button": HTMLSsFreedomObjectOptionsButtonElement;
         "ss-freedom-object-options-panel": HTMLSsFreedomObjectOptionsPanelElement;
     }
 }
 declare namespace LocalJSX {
+    interface SsFreedomAddSiblingButton {
+        "adjacentSibling"?: HTMLElement;
+        "element": HTMLElement;
+        "offset": Offset;
+        "processing"?: boolean;
+    }
     interface SsFreedomAdminWidget {
         "canPublish"?: boolean;
         "cmsEditLink"?: string;
         "isPublished"?: boolean;
         "pageClassName"?: string;
         "pageId"?: number;
-        "stage"?: "Stage" | "Live";
+        "stage"?: 'Stage' | 'Live';
     }
     interface SsFreedomObjectAlertButton {
         "element": HTMLElement;
+    }
+    interface SsFreedomObjectDeleteButton {
+        "element": HTMLElement;
+        "processing"?: boolean;
     }
     interface SsFreedomObjectOptionsButton {
         "element": HTMLElement;
@@ -76,8 +111,10 @@ declare namespace LocalJSX {
         "element": HTMLElement;
     }
     interface IntrinsicElements {
+        "ss-freedom-add-sibling-button": SsFreedomAddSiblingButton;
         "ss-freedom-admin-widget": SsFreedomAdminWidget;
         "ss-freedom-object-alert-button": SsFreedomObjectAlertButton;
+        "ss-freedom-object-delete-button": SsFreedomObjectDeleteButton;
         "ss-freedom-object-options-button": SsFreedomObjectOptionsButton;
         "ss-freedom-object-options-panel": SsFreedomObjectOptionsPanel;
     }
@@ -86,8 +123,10 @@ export { LocalJSX as JSX };
 declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
+            "ss-freedom-add-sibling-button": LocalJSX.SsFreedomAddSiblingButton & JSXBase.HTMLAttributes<HTMLSsFreedomAddSiblingButtonElement>;
             "ss-freedom-admin-widget": LocalJSX.SsFreedomAdminWidget & JSXBase.HTMLAttributes<HTMLSsFreedomAdminWidgetElement>;
             "ss-freedom-object-alert-button": LocalJSX.SsFreedomObjectAlertButton & JSXBase.HTMLAttributes<HTMLSsFreedomObjectAlertButtonElement>;
+            "ss-freedom-object-delete-button": LocalJSX.SsFreedomObjectDeleteButton & JSXBase.HTMLAttributes<HTMLSsFreedomObjectDeleteButtonElement>;
             "ss-freedom-object-options-button": LocalJSX.SsFreedomObjectOptionsButton & JSXBase.HTMLAttributes<HTMLSsFreedomObjectOptionsButtonElement>;
             "ss-freedom-object-options-panel": LocalJSX.SsFreedomObjectOptionsPanel & JSXBase.HTMLAttributes<HTMLSsFreedomObjectOptionsPanelElement>;
         }

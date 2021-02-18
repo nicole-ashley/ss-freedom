@@ -2,7 +2,7 @@ import * as tinymce from 'tinymce';
 import he from 'he';
 import { ApiService } from './api-service';
 import { ElementMetadata } from './element-metadata';
-import { SsFreedomAdminWidget } from '../components/ss-freedom-admin-widget/ss-freedom-admin-widget';
+import { AdminWidget } from '../components/admin-widget/admin-widget';
 import { ElementReplacement } from './element-replacement';
 
 declare global {
@@ -243,11 +243,11 @@ export class TinyMceWrangler {
   }
 
   protected async onBlur(e) {
-    const currentObject = ElementMetadata.getObjectForFieldElement(e.target.getBody());
+    const currentObject = ElementMetadata.getClosestObjectElement(e.target.getBody());
     if (currentObject['latestFieldUpdate']) {
       const newDocument = await currentObject['latestFieldUpdate'];
       const focusedEditor = (await this.tinyMce).focusedEditor;
-      const newObject = focusedEditor && ElementMetadata.getObjectForFieldElement(focusedEditor.getBody());
+      const newObject = focusedEditor && ElementMetadata.getClosestObjectElement(focusedEditor.getBody());
       if (newObject !== currentObject) {
         ElementReplacement.replaceObjectWithMostLikelyEquivalent(currentObject, newDocument);
       }
@@ -343,15 +343,15 @@ export class TinyMceWrangler {
 
   private async updateCmsWithLatestData(editor: tinymce.Editor) {
     const editorBody = editor.getBody();
-    const objectElement = ElementMetadata.getObjectForFieldElement(editorBody);
-    const object = ElementMetadata.getObjectDataForFieldElement(editorBody);
+    const objectElement = ElementMetadata.getClosestObjectElement(editorBody);
+    const object = ElementMetadata.getDataForClosestObjectElement(editorBody);
 
     const data = {};
     data[ElementMetadata.getElementConfiguration(editorBody).name] = editor.getContent();
 
     objectElement['latestFieldUpdate'] = this.apiService.updateObject(object.class, object.id, data);
     await objectElement['latestFieldUpdate'];
-    SsFreedomAdminWidget.RefreshPublishedStatus();
+    AdminWidget.RefreshPublishedStatus();
 
     return await objectElement['latestFieldUpdate'];
   }
