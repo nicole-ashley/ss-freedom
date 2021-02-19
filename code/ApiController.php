@@ -178,12 +178,14 @@ class ApiController extends Controller implements PermissionProvider
         );
 
         $newObject->write();
-        if ($relation instanceof HasManyList) {
-            $this->sortHasManyListIfPossible($relation, $newObject, $body->betweenIds);
-            $relation->add($newObject);
-        } else if ($relation instanceof ManyManyList) {
-            $this->sortManyManyListIfPossible($relation, $newObject, $body->betweenIds);
+        if (count(array_filter($body->betweenIds))) {
+            if ($relation instanceof HasManyList) {
+                $this->sortHasManyListIfPossible($relation, $newObject, $body->betweenIds);
+            } else if ($relation instanceof ManyManyList) {
+                $this->sortManyManyListIfPossible($relation, $newObject, $body->betweenIds);
+            }
         }
+        $relation->add($newObject);
 
         if (isset($body->currentPage)) {
             return $this->renderObject(
@@ -440,12 +442,13 @@ class ApiController extends Controller implements PermissionProvider
             $resorting = false;
             $index = null;
             $step = $defaultSort['direction'] === 'ASC' ? 1 : -1;
-            $betweenIds = array_filter($betweenIds);
-            if (count($betweenIds) === 1) {
-                if ($list->first()->ID == $betweenIds[0]) {
+            $filteredBetweenIds = array_values(array_filter($betweenIds));
+            if (count($filteredBetweenIds) === 1) {
+                $step = ($betweenIds[0] ? $step : $step * -1);
+                if ($list->first()->ID == $filteredBetweenIds[0]) {
                     $index = $getSortValue($list->first(), $defaultSort['field']);
-                    $setSortValue($object, $defaultSort['field'], $index - $step);
-                } else if ($list->last()->ID == $betweenIds[0]) {
+                    $setSortValue($object, $defaultSort['field'], $index + $step);
+                } else if ($list->last()->ID == $filteredBetweenIds[0]) {
                     $index = $getSortValue($list->last(), $defaultSort['field']);
                     $setSortValue($object, $defaultSort['field'], $index + $step);
                 }

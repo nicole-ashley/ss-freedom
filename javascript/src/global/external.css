@@ -21,7 +21,7 @@ span[ss-freedom-field].ss-freedom-empty:not(.mce-edit-focus) {
   height: 1.25em;
 }
 
-ss-freedom-add-sibling-button,
+ss-freedom-add-item-button,
 ss-freedom-object-options-button,
 ss-freedom-object-alert-button,
 ss-freedom-object-delete-button {

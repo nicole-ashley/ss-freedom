@@ -6,11 +6,11 @@ import { ElementReplacement } from '../../utils/element-replacement';
 import { AdminWidget } from '../admin-widget/admin-widget';
 
 @Component({
-  tag: 'ss-freedom-add-sibling-button',
-  styleUrl: 'add-sibling-button.scss',
+  tag: 'ss-freedom-add-item-button',
+  styleUrl: 'add-item-button.scss',
   shadow: true
 })
-export class AddSiblingButton {
+export class AddItemButton {
   @Prop() element!: HTMLElement;
   @Prop() adjacentSibling: HTMLElement;
   @Prop() offset!: Offset;
@@ -35,16 +35,24 @@ export class AddSiblingButton {
     }
   }
 
-  async addSibling() {
+  async addItem() {
     this.processing = true;
-    const elementId = ElementMetadata.getObjectData(this.element).id;
+
+    const elementId = this.element.hasAttribute('ss-freedom-object') && ElementMetadata.getObjectData(this.element).id;
     const siblingId = this.adjacentSibling && ElementMetadata.getObjectData(this.adjacentSibling).id;
+    const elementIds = [elementId];
+    if (!(this.offset.top && this.offset.left)) {
+      elementIds.push(siblingId);
+    } else {
+      elementIds.unshift(siblingId);
+    }
+
     const relationMetadata = ElementMetadata.getDataForClosestRelation(this.element);
     const newDocument = await this.api.addItemToList(
       relationMetadata.class,
       relationMetadata.id,
       relationMetadata.relation,
-      [elementId, siblingId]
+      elementIds
     );
 
     Array.from(
@@ -61,7 +69,7 @@ export class AddSiblingButton {
 
   render() {
     return <Host>
-      <button onClick={() => this.addSibling()} disabled={this.processing}>
+      <button onClick={() => this.addItem()} disabled={this.processing}>
         <div><ion-icon name={this.processing ? 'refresh' : 'add'} /></div>
       </button>
     </Host>;

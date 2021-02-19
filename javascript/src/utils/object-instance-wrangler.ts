@@ -8,9 +8,10 @@ export class ObjectInstanceWrangler {
   private alertButton: HTMLSsFreedomObjectAlertButtonElement;
   private deleteButton: HTMLSsFreedomObjectDeleteButtonElement;
   private adjacentSiblingButtons: {
-    before?: HTMLSsFreedomAddSiblingButtonElement,
-    after?: HTMLSsFreedomAddSiblingButtonElement
+    before?: HTMLSsFreedomAddItemButtonElement,
+    after?: HTMLSsFreedomAddItemButtonElement
   } = {};
+  private emptyRelationAddItemButtons: HTMLSsFreedomAddItemButtonElement[] = [];
   private hoverState = false;
 
   constructor(element: HTMLElement) {
@@ -42,6 +43,7 @@ export class ObjectInstanceWrangler {
       this.deleteButton,
       this.adjacentSiblingButtons?.before,
       this.adjacentSiblingButtons?.after,
+      ...this.emptyRelationAddItemButtons,
       ...Array.from(
         document.querySelectorAll(`ss-freedom-object-options-panel[ss-freedom-uid="${metadata.uid}"]`)
       )
@@ -63,119 +65,19 @@ export class ObjectInstanceWrangler {
     if (newHoverState) {
       this.ensureButtonsPresent();
       this.showAdjacentAddButtonsIfInList();
+      this.showEmptyRelationAddItemButtons();
       if (newHoverState != this.hoverState) {
         this.showEmptyFields();
       }
     } else {
       this.ensureButtonsNotPresent();
       this.hideAdjacentAddButtons();
+      this.hideEmptyRelationAddItemButtons();
       if (newHoverState != this.hoverState) {
         this.removeHoverState();
       }
     }
     this.hoverState = newHoverState;
-  }
-
-  private showAdjacentAddButtonsIfInList() {
-    if (
-      this.element.parentElement.hasAttribute('ss-freedom-relation') &&
-      !(this.adjacentSiblingButtons.before && this.adjacentSiblingButtons.after)
-    ) {
-      const adjacentOffsets = this.discoverClosestListSiblingsAdjacentEdges();
-      Object.keys(adjacentOffsets).forEach((position) => {
-        if (!this.adjacentSiblingButtons[position]) {
-          const button = document.createElement('ss-freedom-add-sibling-button');
-          button.element = this.element;
-          button.offset = adjacentOffsets[position];
-          button.adjacentSibling = (position === 'before' ?
-            this.element.previousElementSibling :
-            this.element.nextElementSibling) as HTMLElement;
-          this.adjacentSiblingButtons[position] = button;
-          document.body.prepend(button);
-        }
-      });
-    }
-  }
-
-  private discoverClosestListSiblingsAdjacentEdges() {
-    const edges: {before?: Offset, after?: Offset} = {};
-    if (this.element.previousElementSibling) {
-      edges.before = this.calculateAdjacentEdgeOffset(this.element.previousElementSibling);
-      if (!this.element.nextElementSibling) {
-        edges.after = this.mirrorSiblingEdge(edges.before);
-      }
-    }
-    if (this.element.nextElementSibling) {
-      edges.after = this.calculateAdjacentEdgeOffset(this.element.nextElementSibling);
-      if (!this.element.previousElementSibling) {
-        edges.before = this.mirrorSiblingEdge(edges.after);
-      }
-    }
-    return edges;
-  }
-
-  private calculateAdjacentEdgeOffset(siblingElement: Element): Offset {
-    const thisBounds = BoundingDocumentRect.for(this.element);
-    const siblingBounds = BoundingDocumentRect.for(siblingElement);
-
-    const edgeDistances = {
-      top: Math.abs(thisBounds.top - siblingBounds.bottom),
-      right: Math.abs(thisBounds.right - siblingBounds.left),
-      bottom: Math.abs(thisBounds.bottom - siblingBounds.top),
-      left: Math.abs(thisBounds.left - siblingBounds.right)
-    };
-
-    const smallestDistance = Math.min(...Object.values(edgeDistances));
-    const offset: Offset = {};
-
-    if (
-      ((thisBounds.top > siblingBounds.bottom || thisBounds.bottom < siblingBounds.top) &&
-        (thisBounds.right > siblingBounds.right || thisBounds.left < siblingBounds.left)) ||
-      [edgeDistances.left, edgeDistances.right].includes(smallestDistance)
-    ) {
-      let edge = siblingElement === this.element.previousElementSibling ? 'left' : 'right';
-      if (window.getComputedStyle(this.element).direction === 'rtl') {
-        edge = edge === 'left' ? 'right' : 'left';
-      }
-      offset[edge] = '-1rem';
-      offset.top = '0rem';
-      offset.bottom = '0rem';
-    } else {
-      offset[smallestDistance === edgeDistances.top ? 'top' : 'bottom'] = '-1rem';
-      offset.left = '0rem';
-      offset.right = '0rem';
-    }
-
-
-    return offset;
-  }
-
-  private mirrorSiblingEdge(offset: Offset): Offset {
-    const clone = Object.assign({}, offset);
-    if (!clone.top) {
-      clone.top = clone.bottom;
-      delete clone.bottom;
-    } else if (!clone.right) {
-      clone.right = clone.left;
-      delete clone.left;
-    } else if (!clone.bottom) {
-      clone.bottom = clone.top;
-      delete clone.top;
-    } else if (!clone.left) {
-      clone.left = clone.right;
-      delete clone.right;
-    }
-    return clone;
-  }
-
-  private hideAdjacentAddButtons() {
-    Object.keys(this.adjacentSiblingButtons).forEach((position) => {
-      const button = this.adjacentSiblingButtons[position];
-      if (!button.processing) {
-        button.remove();
-        delete this.adjacentSiblingButtons[position];
-      }
-    });
   }
 
   private ensureButtonsPresent() {
@@ -224,6 +126,156 @@ export class ObjectInstanceWrangler {
 
     this.optionsButton = null;
     this.alertButton = null;
+  }
+
+  private showAdjacentAddButtonsIfInList() {
+    if (
+      this.element.parentElement.hasAttribute('ss-freedom-relation') &&
+      ElementMetadata.getObjectData(this.element.parentElement).canAdd &&
+      !(this.adjacentSiblingButtons.before && this.adjacentSiblingButtons.after)
+    ) {
+      const adjacentOffsets = this.discoverClosestListSiblingsAdjacentEdges();
+      Object.keys(adjacentOffsets).forEach((position) => {
+        if (!this.adjacentSiblingButtons[position]) {
+          const button = document.createElement('ss-freedom-add-item-button');
+          button.element = this.element;
+          button.offset = adjacentOffsets[position];
+          button.adjacentSibling = (position === 'before' ?
+            this.element.previousElementSibling :
+            this.element.nextElementSibling) as HTMLElement;
+          this.adjacentSiblingButtons[position] = button;
+          document.body.prepend(button);
+        }
+      });
+    }
+  }
+
+  private discoverClosestListSiblingsAdjacentEdges() {
+    const edges: { before?: Offset, after?: Offset } = {};
+
+    let temporarySibling;
+    if (!(this.element.previousElementSibling || this.element.nextElementSibling)) {
+      temporarySibling = document.createElement('div');
+      this.element.insertAdjacentElement('afterend', temporarySibling);
+    }
+
+    if (this.element.previousElementSibling) {
+      edges.before = this.calculateAdjacentEdgeOffset(this.element.previousElementSibling);
+      if (!this.element.nextElementSibling) {
+        edges.after = this.mirrorSiblingEdge(edges.before);
+      }
+    }
+
+    if (this.element.nextElementSibling) {
+      edges.after = this.calculateAdjacentEdgeOffset(this.element.nextElementSibling);
+      if (!this.element.previousElementSibling) {
+        edges.before = this.mirrorSiblingEdge(edges.after);
+      }
+    }
+
+    if (temporarySibling) {
+      temporarySibling.remove();
+    }
+
+    return edges;
+  }
+
+  private calculateAdjacentEdgeOffset(siblingElement: Element): Offset {
+    const thisBounds = BoundingDocumentRect.for(this.element);
+    const siblingBounds = BoundingDocumentRect.for(siblingElement);
+
+    const edgeDistances = {
+      top: Math.abs(thisBounds.top - siblingBounds.bottom),
+      right: Math.abs(thisBounds.right - siblingBounds.left),
+      bottom: Math.abs(thisBounds.bottom - siblingBounds.top),
+      left: Math.abs(thisBounds.left - siblingBounds.right)
+    };
+
+    const smallestDistance = Math.min(...Object.values(edgeDistances));
+    const offset: Offset = {};
+
+    if (
+      ((thisBounds.top > siblingBounds.bottom || thisBounds.bottom < siblingBounds.top) &&
+        (thisBounds.right > siblingBounds.right || thisBounds.left < siblingBounds.left)) ||
+      [edgeDistances.left, edgeDistances.right].includes(smallestDistance)
+    ) {
+      let edge = siblingElement === this.element.previousElementSibling ? 'left' : 'right';
+      if (window.getComputedStyle(this.element).direction === 'rtl') {
+        edge = edge === 'left' ? 'right' : 'left';
+      }
+      offset[edge] = '-1rem';
+      offset.top = offset.bottom = '0rem';
+    } else {
+      offset[smallestDistance === edgeDistances.top ? 'top' : 'bottom'] = '-1rem';
+      offset.left = offset.right = '0rem';
+    }
+
+    return offset;
+  }
+
+  private mirrorSiblingEdge(offset: Offset): Offset {
+    const clone = Object.assign({}, offset);
+    if (!clone.top) {
+      clone.top = clone.bottom;
+      delete clone.bottom;
+    } else if (!clone.right) {
+      clone.right = clone.left;
+      delete clone.left;
+    } else if (!clone.bottom) {
+      clone.bottom = clone.top;
+      delete clone.top;
+    } else if (!clone.left) {
+      clone.left = clone.right;
+      delete clone.right;
+    }
+    return clone;
+  }
+
+  private hideAdjacentAddButtons() {
+    Object.keys(this.adjacentSiblingButtons).forEach((position) => {
+      const button = this.adjacentSiblingButtons[position];
+      if (!button.processing) {
+        button.remove();
+        delete this.adjacentSiblingButtons[position];
+      }
+    });
+  }
+
+  private showEmptyRelationAddItemButtons() {
+    const emptyRelations = this.element.querySelectorAll('[ss-freedom-relation]');
+    emptyRelations.forEach((relation: HTMLElement) => {
+      if (relation.childElementCount > 0 || relation['addItemButton'] || !ElementMetadata.getObjectData(relation).canAdd) {
+        return;
+      }
+
+      // const relationBounds = relation.getBoundingClientRect();
+      const offset: Offset = {};
+      // if (relationBounds.width > relationBounds.height) {
+        offset.top = offset.right = offset.bottom = offset.left = '0rem';
+      // } else {
+        // offset.top = offset.bottom = offset.left = '0rem';
+      // }
+      const button = document.createElement('ss-freedom-add-item-button');
+      button.element = relation;
+      button.offset = offset;
+      this.emptyRelationAddItemButtons.push(button);
+      button.element['addItemButton'] = button;
+      document.body.prepend(button);
+    });
+  }
+
+  private hideEmptyRelationAddItemButtons() {
+    const buttons = this.emptyRelationAddItemButtons;
+    this.emptyRelationAddItemButtons = [];
+    while (buttons.length) {
+      const button = buttons.pop();
+      if (button.processing) {
+        this.emptyRelationAddItemButtons.push(button);
+      } else {
+        delete button.element['addItemButton'];
+        button.remove();
+      }
+    }
   }
 
   private showEmptyFields() {
