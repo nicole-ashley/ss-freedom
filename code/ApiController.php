@@ -11,6 +11,7 @@ use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Convert;
+use SilverStripe\ErrorPage\ErrorPage;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\ORM\DataObject;
@@ -121,7 +122,7 @@ class ApiController extends Controller implements PermissionProvider
         $this->ensureStagedMode();
         $this->ensureHttpMethod('GET');
 
-        $linkList = $this->generateLinkList();
+        $linkList = static::generateLinkList();
 
         $response = HTTPResponse::create();
         $response->addHeader('Content-Type', 'application/json');
@@ -250,11 +251,25 @@ class ApiController extends Controller implements PermissionProvider
         }
     }
 
-    private function generateLinkList(SiteTree $parent = null, $parentIsLast = false)
+    private static function generateLinkList(SiteTree $parent = null)
     {
         $output = [];
-        $depth = $parent ? $this->getPageDepth($parent) + 1 : 0;
-        $pages = SiteTree::get()->filter(['ParentID' => $parent ? $parent->ID : 0]);
+        $tree = static::generatePageTree($parent);
+
+        foreach ($tree as $id => $title) {
+            $output[] = ['title' => $title, 'value' => "[sitetree_link id={$id}]"];
+        }
+
+        return $output;
+    }
+
+    public static function generatePageTree(SiteTree $parent = null, $parentIsLast = false)
+    {
+        $output = [];
+        $depth = $parent ? static::getPageDepth($parent) + 1 : 0;
+        $pages = SiteTree::get()
+            ->filter(['ParentID' => $parent ? $parent->ID : 0])
+            ->exclude(['ClassName' => ErrorPage::class]);
         $pageCount = $pages->count();
 
         foreach ($pages as $i => $page) {
@@ -271,21 +286,21 @@ class ApiController extends Controller implements PermissionProvider
             if ($depth > 0) {
                 $treePrefix .= $isLast ? '┗　' : '┣　';
             }
-            $output[] = ['title' => $treePrefix . $page->MenuTitle, 'value' => "[sitetree_link id={$page->ID}]"];
+            $output[$page->ID] = $treePrefix . $page->MenuTitle;
 
             if ($page->Children()->count()) {
-                $output = array_merge($output, $this->generateLinkList($page, $isLast));
+                $output = array_merge($output, static::generatePageTree($page, $isLast));
             }
         }
 
         return $output;
     }
 
-    private function getPageDepth(SiteTree $page)
+    private static function getPageDepth(SiteTree $page)
     {
         $parent = $page->Parent();
         if ($parent && $parent->exists()) {
-            return $this->getPageDepth($parent) + 1;
+            return static::getPageDepth($parent) + 1;
         } else {
             return 0;
         }
