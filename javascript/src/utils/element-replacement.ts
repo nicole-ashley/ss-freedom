@@ -23,7 +23,7 @@ export class ElementReplacement {
       }
 
       ancestry.unshift(usedParts);
-      current = current.closest('[ss-freedom-object],[ss-freedom-field],[ss-freedom-relation]');
+      current = current.parentElement.closest('[ss-freedom-object],[ss-freedom-field],[ss-freedom-relation]');
     }
 
     return ElementReplacement.queryDocumentFor(newDocument, ancestry)[0];
@@ -35,16 +35,16 @@ export class ElementReplacement {
       parts.push(`[ss-freedom-object="${element.getAttribute('ss-freedom-object')}"]`);
     }
     if (element.hasAttribute('ss-freedom-field')) {
-      parts.push(`[ss-freedom-field="${element.getAttribute('ss-freedom-field')}]`);
+      parts.push(`[ss-freedom-field="${element.getAttribute('ss-freedom-field')}"]`);
     }
     if (element.hasAttribute('ss-freedom-relation')) {
-      parts.push(`[ss-freedom-relation="${element.getAttribute('ss-freedom-relation')}]`);
+      parts.push(`[ss-freedom-relation="${element.getAttribute('ss-freedom-relation')}"]`);
     }
     return parts;
   }
 
   static queryDocumentFor(document: HTMLDocument, ancestry: string[][]) {
     const query = ancestry.map((queryParts) => queryParts.join(''));
-    return document.querySelectorAll(query.join('>'));
+    return document.querySelectorAll(query.join(' '));
   }
 }

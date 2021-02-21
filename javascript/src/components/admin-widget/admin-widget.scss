@@ -1,0 +1,150 @@
+div {
+  --easing: cubic-bezier(0.165, 0.84, 0.44, 1);
+  position: fixed;
+  z-index: 2;
+  bottom: 1rem;
+  left: 1rem;
+  width: auto;
+  height: auto;
+  box-sizing: content-box;
+  box-shadow: 0 0 $shadow-spread $shadow-colour;
+  border: solid $border-width;
+  overflow: hidden;
+  transition-property: border-color, border-radius, background-color, padding, max-width, max-height;
+  transition-duration: 500ms;
+  transition-timing-function: var(--easing);
+
+  &.closed {
+    max-width: 4rem;
+    max-height: 4rem;
+    border-color: transparent;
+    border-radius: 50%;
+    background-color: #004a7a;
+    padding: 0;
+
+    form {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  &.open {
+    border-color: lightgrey;
+    border-radius: $border-radius;
+    background-color: white;
+    padding: 2rem 1rem 0.5rem;
+    max-width: 8rem;
+    max-height: 11rem;
+
+    button.silverstripe {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+}
+
+button.silverstripe,
+form {
+  transition: opacity 500ms var(--easing);
+}
+
+button.silverstripe {
+  position: absolute;
+  color: white;
+  width: 4rem;
+  height: 4rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  appearance: none;
+  background: none;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+
+  &:before {
+    display: block;
+    content: 'M';
+    font-family: silverstripe;
+    font-style: normal;
+    font-weight: 400;
+    font-variant: normal;
+    text-transform: none;
+    speak: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+form {
+  //position: absolute;
+
+  > * {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  label {
+    @include label;
+  }
+
+  select {
+    @include field;
+    display: block;
+  }
+
+  button.publish,
+  button.published {
+    position: relative;
+
+    ion-icon {
+      position: absolute;
+      top: calc(50% - 0.5em);
+      left: calc(50% - 0.5em);
+      display: none;
+    }
+  }
+
+  button.publish {
+    @include primary-button;
+  }
+
+  button.published {
+    @include standard-button;
+  }
+
+  button.publishing {
+    span {
+      color: transparent;
+    }
+
+    ion-icon {
+      display: block;
+      animation: 1s infinite linear spin;
+    }
+  }
+
+  .settings,
+  .close {
+    position: absolute;
+    top: 0rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    appearance: none;
+    border: 0;
+    background: none;
+  }
+
+  .settings {
+    right: 2.5rem;
+  }
+
+  .close {
+    right: 0;
+  }
+}

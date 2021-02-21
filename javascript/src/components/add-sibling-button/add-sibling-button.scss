@@ -1,0 +1,47 @@
+:host {
+  display: flex;
+  min-width: 1px;
+  min-height: 1px;
+  background: lightgrey;
+}
+
+button {
+  position: relative;
+  display: block;
+  flex: 1;
+  justify-self: stretch;
+  appearance: none;
+  background: none;
+  border: 0;
+  margin: -1rem;
+}
+
+button:disabled {
+  color: black;
+}
+
+div {
+  border: solid $border-width lightgrey;
+  border-radius: $border-radius;
+  border-top-right-radius: 0;
+  box-shadow: 0 0 $shadow-spread $shadow-colour;
+  background-color: white;
+  position: absolute;
+  left: calc(50% - 0.5rem - 1px);
+  top: calc(50% - 0.5rem - 1px);
+  line-height: 0;
+
+  transition: background-color $hover-transition-duration;
+}
+
+button:not([disabled]):hover div {
+  background-color: lightgrey;
+}
+
+ion-icon {
+  font-size: 1rem;
+}
+
+:host([processing]) ion-icon {
+  animation: 1s infinite linear spin;
+}

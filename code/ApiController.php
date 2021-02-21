@@ -2,7 +2,6 @@
 
 namespace NikRolls\SsFreedom;
 
-use Exception;
 use InvalidArgumentException;
 use SilverStripe\CMS\Controllers\ModelAsController;
 use SilverStripe\CMS\Model\SiteTree;
@@ -10,11 +9,14 @@ use SilverStripe\Control\Controller;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\ClassInfo;
-use SilverStripe\Core\Convert;
+use SilverStripe\Core\Config\Config as SS_Config;
 use SilverStripe\ErrorPage\ErrorPage;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\HasManyList;
+use SilverStripe\ORM\ManyManyList;
+use SilverStripe\ORM\RelationList;
 use SilverStripe\Security\PermissionProvider;
 use SilverStripe\Security\Security;
 use SilverStripe\Versioned\Versioned;
@@ -24,8 +26,11 @@ class ApiController extends Controller implements PermissionProvider
     private static $allowed_actions = [
         'getObjectInfo' => 'NIKROLLS_SSFREEDOM_EDIT',
         'getOptionsForm' => 'NIKROLLS_SSFREEDOM_EDIT',
+        'deleteObject' => 'NIKROLLS_SSFREEDOM_EDIT',
         'updateObject' => 'NIKROLLS_SSFREEDOM_EDIT',
         'publishObject' => 'NIKROLLS_SSFREEDOM_EDIT',
+        'addItemToList' => 'NIKROLLS_SSFREEDOM_EDIT',
+        'removeItemFromList' => 'NIKROLLS_SSFREEDOM_EDIT',
         'getLinkList' => 'NIKROLLS_SSFREEDOM_EDIT'
     ];
 
@@ -95,6 +100,35 @@ class ApiController extends Controller implements PermissionProvider
         }
     }
 
+    public function deleteObject(HTTPRequest $request)
+    {
+        $this->ensureStagedMode();
+        $this->ensureHttpMethod('DELETE');
+
+        $body = json_decode($request->getBody());
+
+        $this->ensureClassProperty($body);
+        $this->ensureIdProperty($body);
+
+        $this->ensureClassIsDataObject($body);
+        $object = $this->getObjectById($body->class, $body->id);
+        $this->ensureObjectIsDeletable($object);
+        if ($object->hasMethod('canUnpublish')) {
+            $this->ensureObjectCanBeUnPublished($object);
+        }
+
+        if ($object->hasMethod('doUnpublish')) {
+            $object->doUnpublish();
+        }
+        $object->delete();
+
+        if (isset($body->currentPage)) {
+            return $this->renderObject($this->getObjectById($body->currentPage->class, $body->currentPage->id));
+        } else {
+            return $this->http_response_code(200);
+        }
+    }
+
     public function publishObject(HTTPRequest $request)
     {
         $this->ensureStagedMode();
@@ -114,6 +148,83 @@ class ApiController extends Controller implements PermissionProvider
             return $this->renderObject($this->getObjectById($body->currentPage->class, $body->currentPage->id));
         } else {
             return $this->renderObject($this->getObjectById($object->ClassName, $object->ID));
+        }
+    }
+
+    public function addItemToList(HTTPRequest $request)
+    {
+        $this->ensureStagedMode();
+        $this->ensureHttpMethod('POST');
+
+        $body = json_decode($request->getBody());
+
+        $this->ensureClassProperty($body);
+        $this->ensureIdProperty($body);
+        $this->ensureRelationProperty($body);
+        $this->validateBetweenIdsProperty($body);
+
+        $this->ensureClassIsDataObject($body);
+        $object = $this->getObjectById($body->class, $body->id);
+        $this->ensureObjectHasRelation($object, $body->relation);
+
+        /** @var RelationList $relation */
+        $relation = $object->{$body->relation}();
+        $newObjectClass = $relation->dataClass();
+        /** @var DataObject $newObject */
+        $newObject = $newObjectClass::create();
+        $this->ensureObjectIsCreatable(
+            $newObject //,
+            // [$newObject->getReverseAssociation($object->ClassName) => $object]
+        );
+
+        $newObject->write();
+        if ($relation instanceof HasManyList) {
+            $this->sortHasManyListIfPossible($relation, $newObject, $body->betweenIds);
+            $relation->add($newObject);
+        } else if ($relation instanceof ManyManyList) {
+            $this->sortManyManyListIfPossible($relation, $newObject, $body->betweenIds);
+        }
+
+        if (isset($body->currentPage)) {
+            return $this->renderObject(
+                $this->getObjectById($body->currentPage->class, $body->currentPage->id),
+                201
+            );
+        } else {
+            return $this->renderObject(
+                $this->getObjectById($object->ClassName, $object->ID),
+                201
+            );
+        }
+    }
+
+    public function removeItemFromList(HTTPRequest $request)
+    {
+        $this->ensureStagedMode();
+        $this->ensureHttpMethod('DELETE');
+
+        $body = json_decode($request->getBody());
+
+        $this->ensureClassProperty($body);
+        $this->ensureIdProperty($body);
+        $this->ensureRelationProperty($body);
+        $this->ensureItemIdProperty($body);
+
+        $this->ensureClassIsDataObject($body);
+        $object = $this->getObjectById($body->class, $body->id);
+        $this->ensureObjectHasRelation($object, $body->relation);
+
+        /** @var RelationList $relation */
+        $relation = $object->{$body->relation}();
+        $relation->removeByID($body->itemId);
+
+        if (isset($body->currentPage)) {
+            return $this->renderObject(
+                $this->getObjectById($body->currentPage->class, $body->currentPage->id),
+                200
+            );
+        } else {
+            return $this->http_response_code(200);
         }
     }
 
@@ -163,6 +274,27 @@ class ApiController extends Controller implements PermissionProvider
         }
     }
 
+    private function ensureRelationProperty(object $body)
+    {
+        if (!isset($body->relation)) {
+            $this->httpError(422, 'no "relation" property');
+        }
+    }
+
+    private function ensureItemIdProperty(object $body)
+    {
+        if (!isset($body->itemId)) {
+            $this->httpError(422, 'no "itemId" property');
+        }
+    }
+
+    private function validateBetweenIdsProperty(object $body)
+    {
+        if (isset($body->betweenIds) && !is_array($body->betweenIds)) {
+            $this->httpError(422, '"betweenIds" must be an array');
+        }
+    }
+
     private function ensureClassIsDataObject(object $body)
     {
         if (!array_search($body->class, ClassInfo::getValidSubClasses(DataObject::class))) {
@@ -177,6 +309,13 @@ class ApiController extends Controller implements PermissionProvider
         }
     }
 
+    private function ensureObjectHasRelation(DataObject $object, $relation)
+    {
+        if (!$object->$relation() instanceof RelationList) {
+            $this->httpError(422, "$object->ClassName does not have a relation: $relation");
+        }
+    }
+
     private function getObjectById(string $class, int $id)
     {
         $object = DataObject::get_by_id($class, $id);
@@ -188,6 +327,13 @@ class ApiController extends Controller implements PermissionProvider
         return $object;
     }
 
+    private function ensureObjectIsCreatable(DataObject $object, $context = null)
+    {
+        if (!$object->canCreate(null, $context)) {
+            $this->httpError(403, "You don't have permission to create $object->ClassName objects.");
+        }
+    }
+
     private function ensureObjectIsWritable(DataObject $object)
     {
         if (!$object->canEdit()) {
@@ -195,10 +341,24 @@ class ApiController extends Controller implements PermissionProvider
         }
     }
 
+    private function ensureObjectIsDeletable(DataObject $object)
+    {
+        if (!$object->canDelete()) {
+            $this->httpError(403, 'You don\'t have permission to delete this object.');
+        }
+    }
+
     private function ensureObjectCanBePublished(DataObject $object)
     {
         if (!($object->hasMethod('canPublish') && $object->canPublish())) {
             $this->httpError(403, 'You don\'t have permission to publish this object.');
+        }
+    }
+
+    private function ensureObjectCanBeUnPublished(DataObject $object)
+    {
+        if (!($object->hasMethod('canUnpublish') && $object->canUnpublish())) {
+            $this->httpError(403, 'You don\'t have permission to unpublish this object.');
         }
     }
 
@@ -234,21 +394,103 @@ class ApiController extends Controller implements PermissionProvider
         }
     }
 
-    private function renderObject(DataObject $object)
+    private function sortHasManyListIfPossible(HasManyList $list, DataObject $object, array $betweenIds)
+    {
+        $this->sortListIfPossible(
+            $list,
+            $object,
+            $betweenIds,
+            SS_Config::inst()->get($object->ClassName, 'default_sort'),
+            function ($item, $field) {
+                return $item->getField($field);
+            },
+            function ($item, $field, $value) {
+                $item->setField($field, $value);
+                $item->write();
+            }
+        );
+    }
+
+    private function sortManyManyListIfPossible(ManyManyList $list, DataObject $object, array $betweenIds)
+    {
+        $this->sortListIfPossible(
+            $list,
+            $object,
+            $betweenIds,
+            SS_Config::inst()->get($list->getJoinTable(), 'default_sort'),
+            function ($item, $field) use ($list) {
+                return $list->getExtraData(null, $item->ID)[$field];
+            },
+            function ($item, $field, $value) use ($list) {
+                $list->add($item, [$field => $value]);
+            }
+        );
+    }
+
+    private function sortListIfPossible(
+        RelationList $list,
+        DataObject $object,
+        array $betweenIds,
+        string $defaultSort,
+        callable $getSortValue,
+        callable $setSortValue
+    ) {
+        if ($defaultSort) {
+            $defaultSort = $this->extractSortDefinition($defaultSort);
+            $resorting = false;
+            $index = null;
+            $step = $defaultSort['direction'] === 'ASC' ? 1 : -1;
+            $betweenIds = array_filter($betweenIds);
+            if (count($betweenIds) === 1) {
+                if ($list->first()->ID == $betweenIds[0]) {
+                    $index = $getSortValue($list->first(), $defaultSort['field']);
+                    $setSortValue($object, $defaultSort['field'], $index - $step);
+                } else if ($list->last()->ID == $betweenIds[0]) {
+                    $index = $getSortValue($list->last(), $defaultSort['field']);
+                    $setSortValue($object, $defaultSort['field'], $index + $step);
+                }
+            } else {
+                foreach ($list as $item) {
+                    if (!$resorting && array_search($item->ID, $betweenIds) !== false) {
+                        $index = $getSortValue($item, $defaultSort['field']);
+                        $item = $object;
+                        $resorting = true;
+                    }
+                    if ($resorting) {
+                        $setSortValue($item, $defaultSort['field'], $index += $step);
+                    }
+                }
+            }
+        }
+    }
+
+    private function extractSortDefinition(string $sortDefinition)
+    {
+        preg_match(
+            '`(?:^|\.)"?(?<field>[^"\s]+)"?(?:\s+(?<direction>ASC|DESC))?\s*$`i',
+            $sortDefinition,
+            $sortParts
+        );
+        $sortParts['direction'] = isset($sortParts['direction']) ? strtoupper($sortParts['direction']) : 'ASC';
+        return $sortParts;
+    }
+
+    private function renderObject(DataObject $object, int $statusCode = 200)
     {
         if ($object->hasMethod('forTemplate')) {
-            return $object->forTemplate();
+            $response = HTTPResponse::create();
+            $response->addHeader('Content-Type', 'text/html');
+            $response->setBody($object->forTemplate());
         } elseif ($object instanceof SiteTree) {
             $controller = ModelAsController::controller_for($object);
             $response = $controller->handleRequest($this->getRequest());
-            $response->setStatusCode(200);
-            return $response;
         } else {
             $response = $this->getResponse();
             $response->addHeader('Content-Type', 'application/json');
-            $response->setBody(Convert::array2json($object->toMap()));
-            return $response;
+            $response->setBody(json_encode($object->toMap()));
         }
+        $response->setStatusCode($statusCode);
+        return $response;
     }
 
     private static function generateLinkList(SiteTree $parent = null)

@@ -48,12 +48,57 @@ export class ApiService {
     }
   }
 
+  async deleteObject(className, id) {
+    const currentPage = this.currentPage();
+    const response = await this.fetch(this.apiUrlFor('deleteObject'), {
+      method: 'DELETE',
+      credentials: 'include',
+      body: JSON.stringify({ class: className, id, currentPage })
+    });
+
+    if (response.ok) {
+      return new DOMParser().parseFromString(await response.text(), 'text/html');
+    } else {
+      throw response;
+    }
+  }
+
   async publishObject(className, id) {
     const currentPage = this.currentPage();
     const response = await this.fetch(this.apiUrlFor('publishObject'), {
       method: 'POST',
       credentials: 'include',
       body: JSON.stringify({ class: className, id, currentPage })
+    });
+
+    if (response.ok) {
+      return new DOMParser().parseFromString(await response.text(), 'text/html');
+    } else {
+      throw response;
+    }
+  }
+
+  async addItemToList(className, id, relation, betweenIds = []) {
+    const currentPage = this.currentPage();
+    const response = await this.fetch(this.apiUrlFor('addItemToList'), {
+      method: 'POST',
+      credentials: 'include',
+      body: JSON.stringify({ class: className, id, relation, betweenIds, currentPage })
+    });
+
+    if (response.ok) {
+      return new DOMParser().parseFromString(await response.text(), 'text/html');
+    } else {
+      throw response;
+    }
+  }
+
+  async removeItemFromList(className, id, relation, itemId) {
+    const currentPage = this.currentPage();
+    const response = await this.fetch(this.apiUrlFor('removeItemFromList'), {
+      method: 'DELETE',
+      credentials: 'include',
+      body: JSON.stringify({ class: className, id, relation, itemId, currentPage })
     });
 
     if (response.ok) {
