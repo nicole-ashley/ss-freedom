@@ -23,15 +23,17 @@ use SilverStripe\Versioned\Versioned;
 
 class ApiController extends Controller implements PermissionProvider
 {
+    const EDIT_PERMISSION = 'NIKROLLS_SSFREEDOM_EDIT';
+
     private static $allowed_actions = [
-        'getObjectInfo' => 'NIKROLLS_SSFREEDOM_EDIT',
-        'getOptionsForm' => 'NIKROLLS_SSFREEDOM_EDIT',
-        'deleteObject' => 'NIKROLLS_SSFREEDOM_EDIT',
-        'updateObject' => 'NIKROLLS_SSFREEDOM_EDIT',
-        'publishObject' => 'NIKROLLS_SSFREEDOM_EDIT',
-        'addItemToList' => 'NIKROLLS_SSFREEDOM_EDIT',
-        'removeItemFromList' => 'NIKROLLS_SSFREEDOM_EDIT',
-        'getLinkList' => 'NIKROLLS_SSFREEDOM_EDIT'
+        'getObjectInfo' => self::EDIT_PERMISSION,
+        'getOptionsForm' => self::EDIT_PERMISSION,
+        'deleteObject' => self::EDIT_PERMISSION,
+        'updateObject' => self::EDIT_PERMISSION,
+        'publishObject' => self::EDIT_PERMISSION,
+        'addItemToList' => self::EDIT_PERMISSION,
+        'removeItemFromList' => self::EDIT_PERMISSION,
+        'getLinkList' => self::EDIT_PERMISSION
     ];
 
     public function getObjectInfo(HTTPRequest $request)
@@ -554,7 +556,7 @@ class ApiController extends Controller implements PermissionProvider
     public function providePermissions()
     {
         return [
-            'NIKROLLS_SSFREEDOM_EDIT' => [
+            self::EDIT_PERMISSION => [
                 'category' => 'SS Freedom',
                 'name' => 'View the SS Freedom interface in the frontend
                            (must also have Edit access for required objects)'
