@@ -369,7 +369,9 @@ class ApiController extends Controller implements PermissionProvider
     private function updateObjectWithData(DataObject $object, object $data)
     {
         foreach (get_object_vars($data) as $key => $value) {
-            $object->setField($key, $value);
+            if ($object->hasField($key)) {
+                $object->{$key} = $value;
+            }
         }
 
         if ($object->hasExtension(Versioned::class)) {
