@@ -266,6 +266,7 @@ class TemplateAugmentor extends DataExtension
             $removeMethod = 'unlink';
         } else {
             $sortable = false;
+            $removeMethod = 'delete';
         }
 
         $data = [

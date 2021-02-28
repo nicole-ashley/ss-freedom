@@ -81,6 +81,7 @@ export class TinyMceWrangler {
     if (element.hasAttribute('ss-freedom-field')) {
       this.initialiseEditorIfNecessary(element);
       TinyMceWrangler.handleBackgroundColours(element);
+      TinyMceWrangler.suppressEventBubbling(element);
     }
   }
 
@@ -135,6 +136,11 @@ export class TinyMceWrangler {
 
   static toCssColor({fn, c1, c2, c3, a}: CssColour) {
     return `${fn}a(${c1}, ${c2}, ${c3}, ${a})`;
+  }
+
+  static suppressEventBubbling(element: HTMLElement) {
+    element.addEventListener('keyup', e => e.preventDefault());
+    element.addEventListener('click', e => e.stopPropagation());
   }
 
   private async initialiseTinyMceConfiguration(name, element) {

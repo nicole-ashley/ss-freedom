@@ -437,7 +437,7 @@ class ApiController extends Controller implements PermissionProvider
         RelationList $list,
         DataObject $object,
         array $betweenIds,
-        string $defaultSort,
+        ?string $defaultSort,
         callable $getSortValue,
         callable $setSortValue
     ) {
