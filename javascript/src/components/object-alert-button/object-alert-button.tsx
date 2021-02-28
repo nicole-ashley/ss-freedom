@@ -41,7 +41,7 @@ export class ObjectAlertButton {
   }
 
   get iconName() {
-    const alertData = this.alertData();
+    const alertData = this.alertData;
     if (alertData.error) {
       return 'alert';
     } else if (alertData.warning) {
