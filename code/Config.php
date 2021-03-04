@@ -29,7 +29,7 @@ class Config
             'plugins' => ['charmap', 'lists', 'noneditable', 'link'],
             'toolbar' => ['undo', 'redo', '|', 'styleselect', '|', 'bold', 'italic', '|', 'link', 'unlink', '|', 'numlist', 'bullist', 'charmap', '|', 'elementoptions'],
             'valid_elements' => [
-                'p', 'br', 'strong/b', 'em/i', 'ul', 'ol', 'li', 'a[href]', 'ss-freedom-shortcode[class|tag|title]'
+                'p', 'br', 'strong/b', 'em/i', 'ul', 'ol', 'li', 'a[href|target|rel]', 'ss-freedom-shortcode[class|tag|title]'
             ],
             'valid_styles' => []
         ]
