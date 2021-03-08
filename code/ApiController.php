@@ -538,7 +538,7 @@ class ApiController extends Controller implements PermissionProvider
             $output[$page->ID] = $treePrefix . $page->MenuTitle;
 
             if ($page->Children()->count()) {
-                $output = array_merge($output, static::generatePageTree($page, $isLast));
+                $output = array_replace($output, static::generatePageTree($page, $isLast));
             }
         }
 
