@@ -112,7 +112,7 @@ class TemplateAugmentor extends DataExtension
             'class' => get_class($object),
             'id' => $object->ID,
             'data' => [
-                'hasOptions' => $object instanceof OptionsFields
+                'hasOptions' => $object->hasMethod('getFreedomOptionsFields')
             ]
         ];
 
@@ -142,7 +142,7 @@ class TemplateAugmentor extends DataExtension
 
     private static function addAlertInformationForObjectIfAvailable(array $data, DataObject $object)
     {
-        if ($object instanceof Alerts) {
+        if ($object->hasMethod('getFreedomAlerts')) {
             $alerts = array_filter((array) $object->getFreedomAlerts());
             if (count($alerts)) {
                 $data['alerts'] = $alerts;
@@ -159,7 +159,7 @@ class TemplateAugmentor extends DataExtension
             $data['canDelete'] = $data['canDelete'] && $object->canUnpublish();
         }
 
-        if ($object instanceof ConditionalDeleteMethod) {
+        if ($object->hasMethod('getFreedomDeleteMethod')) {
             $deleteMethod = $object->getFreedomDeleteMethod();
             if (array_search($deleteMethod, ['delete', 'unlink']) !== false) {
                 $data['deleteMethod'] = $deleteMethod;
