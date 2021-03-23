@@ -232,7 +232,7 @@ class ApiController extends Controller implements PermissionProvider
         }
     }
 
-    public function getLinkList(HTTPRequest $request)
+    public function getLinkList()
     {
         $this->ensureStagedMode();
         $this->ensureHttpMethod('GET');
@@ -512,10 +512,9 @@ class ApiController extends Controller implements PermissionProvider
         return $output;
     }
 
-    public static function generatePageTree(SiteTree $parent = null, $parentIsLast = false)
+    public static function generatePageTree(SiteTree $parent = null, $depth = 0, $parentIsLast = false)
     {
         $output = [];
-        $depth = $parent ? static::getPageDepth($parent) + 1 : 0;
         $pages = SiteTree::get()
             ->filter(['ParentID' => $parent ? $parent->ID : 0])
             ->exclude(['ClassName' => ErrorPage::class]);
@@ -537,22 +536,12 @@ class ApiController extends Controller implements PermissionProvider
             }
             $output[$page->ID] = $treePrefix . $page->MenuTitle;
 
-            if ($page->Children()->count()) {
-                $output = array_replace($output, static::generatePageTree($page, $isLast));
+            if ($page->AllChildren()->count()) {
+                $output = array_replace($output, static::generatePageTree($page, $depth + 1, $isLast));
             }
         }
 
         return $output;
-    }
-
-    private static function getPageDepth(SiteTree $page)
-    {
-        $parent = $page->Parent();
-        if ($parent && $parent->exists()) {
-            return static::getPageDepth($parent) + 1;
-        } else {
-            return 0;
-        }
     }
 
     public function providePermissions()
