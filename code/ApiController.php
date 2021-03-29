@@ -534,7 +534,7 @@ class ApiController extends Controller implements PermissionProvider
             if ($depth > 0) {
                 $treePrefix .= $isLast ? '┗　' : '┣　';
             }
-            $output[$page->ID] = $treePrefix . $page->MenuTitle;
+            $output[$page->ID] = $treePrefix . $page->obj('MenuTitle')->LimitCharactersToClosestWord(30, '…');
 
             if ($page->AllChildren()->count()) {
                 $output = array_replace($output, static::generatePageTree($page, $depth + 1, $isLast));
