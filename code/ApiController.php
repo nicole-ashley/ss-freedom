@@ -3,6 +3,7 @@
 namespace NikRolls\SsFreedom;
 
 use InvalidArgumentException;
+use SilverStripe\Blog\Model\Blog;
 use SilverStripe\CMS\Controllers\ModelAsController;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Controller;
@@ -536,7 +537,10 @@ class ApiController extends Controller implements PermissionProvider
             }
             $output[$page->ID] = $treePrefix . $page->obj('MenuTitle')->LimitCharactersToClosestWord(30, '…');
 
-            if ($page->AllChildren()->count()) {
+            if (
+                $page->AllChildren()->count() &&
+                !(class_exists(Blog::class) && $page instanceof Blog)
+            ) {
                 $output = array_replace($output, static::generatePageTree($page, $depth + 1, $isLast));
             }
         }
