@@ -504,10 +504,21 @@ class ApiController extends Controller implements PermissionProvider
     private static function generateLinkList(SiteTree $parent = null)
     {
         $output = [];
-        $tree = static::generatePageTree($parent);
+        $pages = SiteTree::get()
+            ->filter(['ParentID' => $parent ? $parent->ID : 0])
+            ->exclude(['ClassName' => ErrorPage::class]);
 
-        foreach ($tree as $id => $title) {
-            $output[] = ['title' => $title, 'value' => "[sitetree_link id={$id}]"];
+        foreach ($pages as $page) {
+            /** @var SiteTree $page */
+            $item = [
+                'title' => $page->obj('MenuTitle')->LimitCharactersToClosestWord(30, '…'),
+                'value' => $page->Link()
+            ];
+
+            if ($page->AllChildren()->count()) {
+                $item['menu'] = static::generateLinkList($page);
+            }
+            $output[] = $item;
         }
 
         return $output;
