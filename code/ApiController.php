@@ -504,16 +504,17 @@ class ApiController extends Controller implements PermissionProvider
     private static function generateLinkList(SiteTree $parent = null)
     {
         $output = [];
+        if ($parent) {
+            $output[] = static::linkListItemFor($parent);
+        }
+
         $pages = SiteTree::get()
             ->filter(['ParentID' => $parent ? $parent->ID : 0])
             ->exclude(['ClassName' => ErrorPage::class]);
 
         foreach ($pages as $page) {
             /** @var SiteTree $page */
-            $item = [
-                'title' => $page->obj('MenuTitle')->LimitCharactersToClosestWord(30, '…'),
-                'value' => $page->Link()
-            ];
+            $item = static::linkListItemFor($page);
 
             if ($page->AllChildren()->count()) {
                 $item['menu'] = static::generateLinkList($page);
@@ -522,6 +523,14 @@ class ApiController extends Controller implements PermissionProvider
         }
 
         return $output;
+    }
+
+    private static function linkListItemFor(SiteTree $page)
+    {
+        return [
+            'title' => $page->obj('MenuTitle')->LimitCharactersToClosestWord(30, '…'),
+            'value' => "[sitetree_link,id=$page->ID]"
+        ];
     }
 
     public static function generatePageTree(SiteTree $parent = null, $depth = 0, $parentIsLast = false)
