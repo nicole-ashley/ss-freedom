@@ -17,8 +17,8 @@ body {
 
 span[ss-freedom-field].ss-freedom-empty:not(.mce-edit-focus) {
   display: inline-block;
-  width: 4em;
-  height: 1.25em;
+  min-width: 4em;
+  min-height: 1.25em;
 }
 
 ss-freedom-add-item-button,
