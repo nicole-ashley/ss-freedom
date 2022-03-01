@@ -21,6 +21,10 @@ span[ss-freedom-field].ss-freedom-empty:not(.mce-edit-focus) {
   min-height: 1.25em;
 }
 
+span[ss-freedom-field].ss-freedom-empty br[data-mce-bogus] {
+  display: none;
+}
+
 ss-freedom-add-item-button,
 ss-freedom-object-options-button,
 ss-freedom-object-alert-button,
